@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Tienen que correr en distintos programas Prolog para no interferirse.
+
+case "$1" in
+start)
+    pushd ${SCRIPT_DIR} > /dev/null
+
+    swipl -q -f servidor_juego_unix.pl -- --port=4567 --fork --pidfile=servidor_juego.pid
+    swipl -q -f servidor_inteligencia_unix.pl -- --port=4568 --fork --pidfile=servidor_inteligencia1.pid
+    swipl -q -f servidor_inteligencia_unix.pl -- --port=4569 --fork --pidfile=servidor_inteligencia2.pid
+
+    popd > /dev/null
+    ;;
+stop)
+    pushd ${SCRIPT_DIR} > /dev/null
+
+    kill $(cat servidor_juego.pid) $(cat servidor_inteligencia1.pid) $(cat servidor_inteligencia2.pid)
+    rm servidor_{juego,inteligencia{1,2}}.pid
+
+    popd > /dev/null
+    ;;
+restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+status)
+    pushd ${SCRIPT_DIR} > /dev/null
+
+    if [ -e servidor_juego.pid -a -e servidor_inteligencia1.pid -a -e servidor_inteligencia2.pid ] && kill -0 $(cat servidor_juego.pid) 2> /dev/null && kill -0 $(cat servidor_inteligencia1.pid) 2> /dev/null && kill -0 $(cat servidor_inteligencia2.pid) 2> /dev/null; then
+        echo Los servicios están levantados
+    else
+        echo Los servicios no están levantados
+        exit 1
+    fi
+
+    popd > /dev/null
+    ;;
+*)
+   echo "Uso: $0 {start|stop|status|restart}"
+esac

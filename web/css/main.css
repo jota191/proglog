@@ -1,0 +1,44 @@
+body {
+  user-select: none; /* Para cuando se arrastre el mouse no cambie el ícono del cursor. */
+}
+
+canvas {
+  display: block;
+  padding: 0;
+  margin: auto;
+}
+
+#hud {
+  padding-left: 16px;
+  position: absolute;
+  width: 400px;
+}
+
+.etiquetaJugador {
+  font-weight: bold;
+}
+
+@keyframes blinker {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.0;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}
+
+label {
+  margin-top: 40px;
+}
+
+.progress-bar {
+  background-image: none;
+  transition: none !important; /* Para que la animación sea lineal. */
+}
+
+#nuevoJuego {
+  margin-top: 50px;
+}

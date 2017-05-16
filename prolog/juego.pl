@@ -6,6 +6,11 @@
                  gol/2,
                  turno/2]).
 
+:- use_module(lab1).
+% probablemente tengamos que usar los predicados de matrices del lab1,
+% por ahora lo importé y estoy usando el mio en mi repo (sin pushearlo,
+% despues vemos cual usamos y eso -el que anda más rápido-)
+
 
 %% cantidad_casilleros(?Ancho,?Alto)
 %
@@ -56,14 +61,16 @@ gol(_,_):-
 %% turno(+E,?NJugador)
 %
 % NJugador es el jugador que tiene que mover en el siguiente turno
-%para el estado E.
+% para el estado E.
 
 turno(_,1). % TODO
+
 
 %% prefijo_movimiento(+E,+LP)
 %
 % LP es una lista no vacía de posiciones que constituyen
 % el prefijo de un movimiento para el estado E,
 % sin llegar a formar un movimiento.
+% (Se usa para validar las jugadas de un jugador humano)
 
 prefijo_movimiento(_,_). % TODO

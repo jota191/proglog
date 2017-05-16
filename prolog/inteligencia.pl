@@ -10,11 +10,13 @@
 
 nombre("Grupo 04").
 
+
 %% niveles_minimax(?MaxNiveles)
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
 niveles_minimax(_). % TODO
+
 
 %% hacer_jugada(+E,?LP,?E2)
 %

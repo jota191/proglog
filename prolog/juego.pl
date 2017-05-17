@@ -87,7 +87,7 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(jugador1))) :-
     nuevo_valor_celda_f(13,3,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(13,7,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(13,8,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])).
+    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),!.
 
     %% inicializar_bandas(+Tablero)
 % Setea el estado de las bandas del tablero, oeste y este

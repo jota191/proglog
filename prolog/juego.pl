@@ -35,7 +35,7 @@ cantidad_casilleros(8,10).
 % TODO: la posicion inicial (7,5) esta hardcodeada, hay que calcular el centro
 % en función de las dimensiones del tablero
 % TODO: en general no es parametrico respecto al tamaño del tablero
-%% representamos a los vértices con un booleano que indica si fue visitado
+% representamos a los vértices con un booleano que indica si fue visitado
 % y una lista de las direcciones a las que se puede ir desde el mismo
 
 estado_inicial(estado(Tablero,pelota(7,5),turno(jugador1))) :-

@@ -1,0 +1,54 @@
+
+\documentclass[12pt]{article}
+%\usepackage{listings}
+%\usepackage{graphicx}
+%\usepackage{cite}
+
+\title{Programaci\'on L\'ogica 2017 \\ Grupo 04}
+\date{ Laboratorio 2 }
+
+
+\begin{document}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+
+Voy generando un template de informe, por ahora es documentaci\'on
+para nosotros, desu\'es vamos refinando.
+
+
+Llegu\'e a implementar {\tt estado\_inicial} considerando la
+siguiente representaci\'on del estado:
+
+{\tt estado\slash3} es un functor que tiene, respectivamente como par\'ametros
+un tablero, la posici\'on de la pelota, y de qu\'e jugador es el turno en el
+siguiente formato:
+
+{\tt estado(Tablero,pelota(X,Y),turno(jugadorX))}
+
+Las coordenadas de la pelota son en el tablero, despu\'es hay que traducirlas
+para hablar con la interfaz.
+El tablero se modela como una matriz en donde cada entrada representa un
+v\'ertice. Las dimensiones de la matriz son $13\times9$.
+(El tablero es de $10 \times 8$, en la implementacion agregamos una unidad
+m\'as en cada dimension porque estamos representando los v\'ertices
+y no las casillas, y adem\'as se agrega una linea atr\'as de cada lado
+del campo, para representar los arcos).
+
+Cada v\'ertice es un functor {\tt v\'ertice(visitada?,Direcciones)} en donde
+{\tt visitada = \{true|false\} }, y direcciones son una lista con las
+direcciones que se pueden tomar desde ese v\'ertice.
+
+{\tt Direcciones $\subseteq$ [n,ne,e,se,s,sw,w,nw]}
+
+Al moverse de un v\'ertice $a$ a un v\'ertice $b$, se borra de la lista
+Direcciones en $a$ la direcci\'on que se tom\'o, y la opuesta en $b$.
+
+\end{document}
+
+
+
+

@@ -136,7 +136,7 @@ inicial_este(vertice(true,[sw,w,nw])).
 
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
     X is M-7,
-    Y is N-7.
+    Y is N-5.
     % TODO : esto no es parametrico con la dimension del tablero
 
 

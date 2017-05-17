@@ -38,7 +38,7 @@ cantidad_casilleros(8,10).
 % representamos a los vértices con un booleano que indica si fue visitado
 % y una lista de las direcciones a las que se puede ir desde el mismo
 
-estado_inicial(estado(Tablero,pelota(7,5),turno(jugador1))) :-
+estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
     cantidad_casilleros(K,L),
     M is L+3,  % modifico las dimensiones porque cuento vertices, y porque
     N is K+1,  % hay una fila mas atrasde cada arco
@@ -154,14 +154,14 @@ mover(E,_,E). % TODO
 % La pelota está en situación de gol a favor del jugador NJugador
 % para el estado E.
 
-gol(estado(_Tablero,pelota(M,N),_),jugador1):-
+gol(estado(_Tablero,pelota(M,N),_),1):-
     cantidad_casilleros(C,_F),
     N2 is div(C,2) + 1,%pelota en columna central
     M2 is 1, % en fila 1
     abs(N2-N) =< 1,
     abs(M2-M) =< 1,!.
 
-gol(estado(_Tablero,pelota(M,N),_),jugador2):-
+gol(estado(_Tablero,pelota(M,N),_),2):-
     cantidad_casilleros(C,F),
     N2 is div(C,2) + 1,%pelota en columna central
     M2 is F+3, % en la ultima fila
@@ -175,7 +175,8 @@ gol(estado(_Tablero,pelota(M,N),_),jugador2):-
 % NJugador es el jugador que tiene que mover en el siguiente turno
 % para el estado E.
 
-turno(_,1). % TODO
+turno(estado(_,_,J),J).
+
 
 
 %% prefijo_movimiento(+E,+LP)

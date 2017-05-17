@@ -32,24 +32,83 @@ cantidad_casilleros(8,10).
 %
 % La pelota se representa (aca) con coordenadas del tablero,
 % despues hacia afuera las mandamos con el sistema que la interfaz requiere
-% TODO: la posicion inicial (5,5) esta hardcodeada, hay que calcular el centro
+% TODO: la posicion inicial (7,5) esta hardcodeada, hay que calcular el centro
 % en función de las dimensiones del tablero
+% TODO: en general no es parametrico respecto al tamaño del tablero
 %% representamos a los vértices con un booleano que indica si fue visitado
 % y una lista de las direcciones a las que se puede ir desde el mismo
 
-estado_inicial(estado(Tablero,pelota(5,5),turno(jugador1))) :-
+estado_inicial(estado(Tablero,pelota(7,5),turno(jugador1))) :-
     cantidad_casilleros(K,L),
     M is L+3,  % modifico las dimensiones porque cuento vertices, y porque
     N is K+1,  % hay una fila mas atrasde cada arco
     inicial_medio(Medio),
     matriz_f(M,N,Medio,Tablero),
-    inicializar_bandas(Tablero). %corte elimina choicepoints
+    inicializar_bandas(Tablero),
+    %esquinas
+    nuevo_valor_celda_f(2,1,Tablero,vertice(true,[se])),
+    nuevo_valor_celda_f(2,9,Tablero,vertice(true,[sw])),
+    nuevo_valor_celda_f(12,1,Tablero,vertice(true,[ne])),
+    nuevo_valor_celda_f(12,9,Tablero,vertice(true,[nw])),
+    %borde norte
+    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[se,s,sw])),
+    nuevo_valor_celda_f(2,3,Tablero,vertice(true,[se,s,sw])),
+    nuevo_valor_celda_f(2,7,Tablero,vertice(true,[se,s,sw])),
+    nuevo_valor_celda_f(2,8,Tablero,vertice(true,[se,s,sw])),
+    nuevo_valor_celda_f(1,5,Tablero,vertice(true,[se,s,sw])),%arco
 
+    %borde sur
+    nuevo_valor_celda_f(12,2,Tablero,vertice(true,[n,ne,nw])),
+    nuevo_valor_celda_f(12,3,Tablero,vertice(true,[n,ne,nw])),
+    nuevo_valor_celda_f(12,7,Tablero,vertice(true,[n,ne,nw])),
+    nuevo_valor_celda_f(12,8,Tablero,vertice(true,[n,ne,nw])),
+    nuevo_valor_celda_f(13,5,Tablero,vertice(true,[n,ne,nw])),%arco
 
-%% inicializar_bandas(+Tablero)
-% -predicado con efecto, iteración loopfail-
+    %dentro del arco (igual a esquinas)
+    nuevo_valor_celda_f(1,4,Tablero,vertice(true,[se])),
+    nuevo_valor_celda_f(1,6,Tablero,vertice(true,[sw])),
+    nuevo_valor_celda_f(13,4,Tablero,vertice(true,[ne])),
+    nuevo_valor_celda_f(13,6,Tablero,vertice(true,[nw])),
+
+    %palos
+    nuevo_valor_celda_f(2,4,Tablero,vertice(true,[ne,e,se,s,sw])),
+    nuevo_valor_celda_f(2,6,Tablero,vertice(true,[se,s,sw,w,nw])),
+    nuevo_valor_celda_f(12,4,Tablero,vertice(true,[n,ne,e,se,nw])),
+    nuevo_valor_celda_f(12,6,Tablero,vertice(true,[n,ne,sw,w,nw])),
+    %afuera
+    nuevo_valor_celda_f(1,1,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(1,2,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(1,3,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(1,7,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(1,8,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(1,9,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,1,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,2,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,3,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,7,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,8,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])).
+
+    %% inicializar_bandas(+Tablero)
 % Setea el estado de las bandas del tablero, oeste y este
 % TODO : parametrizar segun el tamaño del tablero
+
+inicializar_bandas(Tablero) :-
+    inicializar_bandas(Tablero,3).
+
+inicializar_bandas(Tablero,12). %paro
+inicializar_bandas(Tablero,F) :-
+    inicial_oeste(Oeste),
+    inicial_este(Este),
+    nuevo_valor_celda_f(F,1,Tablero,Oeste),
+    nuevo_valor_celda_f(F,9,Tablero,Este),
+    NewF is F+1,
+    inicializar_bandas(Tablero,NewF).
+
+/* en esto me confundí feo y lo dejo como referencia,
+que los predicados eficientes del lab1 tengan efectos no implica que no se haga
+backtracking sobre ellos (este predicado asi como esta, no cambia el Tablero)
+
 inicializar_bandas(Tablero) :-
     inicial_oeste(Oeste),
     inicial_este(Este),
@@ -59,7 +118,7 @@ inicializar_bandas(Tablero) :-
     fail.
 
 inicializar_bandas(_).
-
+*/
 
 %% inicial_medio(?Vertice)
 % predicado que define las casillas iniciales del medio del tablero
@@ -67,8 +126,8 @@ inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 
 %% inicial_{oeste|este}(?Vertice)
 % predicado que define las casillas iniciales del {oeste|este} del tablero
-inicial_oeste(vertice(true,[n,ne,e,se,s])).
-inicial_este(vertice(true,[n,s,sw,w,nw])).
+inicial_oeste(vertice(true,[ne,e,se])).
+inicial_este(vertice(true,[sw,w,nw])).
 
 
 %% posicion_pelota(+E,?P)
@@ -76,8 +135,8 @@ inicial_este(vertice(true,[n,s,sw,w,nw])).
 % P es la posición de la pelota para el estado E.
 
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
-    X is M-5,
-    Y is N-5.
+    X is M-7,
+    Y is N-7.
     % TODO : esto no es parametrico con la dimension del tablero
 
 
@@ -117,11 +176,10 @@ turno(_,1). % TODO
 prefijo_movimiento(_,_). % TODO
 
 
+%% para testear estado inicial
+% (estado_inicial(E),juego:print_Estado(E)) imprime un dibujito con sentido
+% (esto fué de hecho bastante útil y encontré bugs)
 
-
-
-
-%% para testear
 print_Estado(estado(Board,_,_)) :-
     between(1,13,F),
     nl,
@@ -131,12 +189,58 @@ print_Estado(estado(Board,_,_)) :-
     fail.
 print_Estado(_).
 
-print_cell(vertice(false,[])) :- write('_').
+%vertices afuera, que solo existen en las filas de los arcos
+print_cell(vertice(_,[])) :- write(' '),!.
+%vertices internos
 print_cell(vertice(false,[n,ne,e,se,s,sw,w,nw])) :-
-    write('┼'). %unicode 253C
-print_cell(vertice(false,[n,ne,e,se,s])) :-
-    write('├').
+    write('┼'),!. %unicode 253C
+%vertices bandas
+print_cell(vertice(_,[ne,e,se])) :-
+    write('┠'),!.
+print_cell(vertice(_,[sw,w,nw])) :-
+    write('┨'),!.
+%vertices fondo
+print_cell(vertice(_,[se,s,sw])) :-
+    write('┯'),!.
+print_cell(vertice(_,[n,ne,nw])) :-
+    write('┷'),!.
+%vertices esquinas
+print_cell(vertice(_,[se])) :-
+    write('┏'),!.
+print_cell(vertice(_,[sw])) :-
+    write('┓'),!.
+print_cell(vertice(_,[ne])) :-
+    write('┗'),!.
+print_cell(vertice(_,[nw])) :-
+    write('┛'),!.
+%vertices palos
+print_cell(vertice(_,[n,ne,e,se,nw])) :-
+    write('╅'),!.
+print_cell(vertice(_,[n,ne,sw,w,nw])) :-
+    write('╆'),!.
+print_cell(vertice(_,[ne,e,se,s,sw])) :-
+    write('╃'),!.
+print_cell(vertice(_,[se,s,sw,w,nw])) :-
+    write('╄'),!.
 
+print_cell(_) :- write('X').%no deberían aparecer X en el tablero inicial
+
+
+/*con un tablero inicial deberia imprimirse:
+   ┏┯┓   
+┏┯┯╃┼╄┯┯┓
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┠┼┼┼┼┼┼┼┨
+┗┷┷╅┼╆┷┷┛
+   ┗┷┛   
+*/
 
 %% unit test suite
 :- begin_tests(juego).

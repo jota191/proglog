@@ -159,12 +159,14 @@ gol(estado(_Tablero,pelota(M,N),_),jugador1):-
     N2 is div(C,2) + 1,%pelota en columna central
     M2 is 1, % en fila 1
     abs(N2-N) =< 1,
-    abs(M2-M) =< 1.
+    abs(M2-M) =< 1,!.
 
 gol(estado(_Tablero,pelota(M,N),_),jugador2):-
     cantidad_casilleros(C,F),
-    N is div(C,2) + 1,%pelota en columna central
-    M is F+3. % en la ultima fila
+    N2 is div(C,2) + 1,%pelota en columna central
+    M2 is F+3, % en la ultima fila
+    abs(N2-N) =< 1,
+    abs(M2-M) =< 1.
 
 
 

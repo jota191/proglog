@@ -96,7 +96,7 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(jugador1))) :-
 inicializar_bandas(Tablero) :-
     inicializar_bandas(Tablero,3).
 
-inicializar_bandas(Tablero,12). %paro
+inicializar_bandas(_Tablero,12). %paro
 inicializar_bandas(Tablero,F) :-
     inicial_oeste(Oeste),
     inicial_este(Este),
@@ -154,8 +154,18 @@ mover(E,_,E). % TODO
 % La pelota está en situación de gol a favor del jugador NJugador
 % para el estado E.
 
-gol(_,_):-
-    fail. % TODO
+gol(estado(_Tablero,pelota(M,N),_),jugador1):-
+    cantidad_casilleros(C,_F),
+    N2 is div(C,2) + 1,%pelota en columna central
+    M2 is 1, % en fila 1
+    abs(N2-N) =< 1,
+    abs(M2-M) =< 1.
+
+gol(estado(_Tablero,pelota(M,N),_),jugador2):-
+    cantidad_casilleros(C,F),
+    N is div(C,2) + 1,%pelota en columna central
+    M is F+3. % en la ultima fila
+
 
 
 %% turno(+E,?NJugador)

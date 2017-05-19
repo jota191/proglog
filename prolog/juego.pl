@@ -135,10 +135,24 @@ inicial_este(vertice(true,[sw,w,nw])).
 % P es la posición de la pelota para el estado E.
 
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
-    X is M-7,
-    Y is N-5.
-    % TODO : esto no es parametrico con la dimension del tablero
+    traducir_coordenadas(interna(M,N),interfaz(X,Y)).
 
+
+
+%% traducir/2 (?Interna,?Interfaz)
+%
+% traduce de coordenadas internas ((1,1) es el vértice
+% de arriba a la izquierda)
+% a coordenadas usadas por la interfaz web ((0,0) es
+% el vértice central del tablero)
+% funciona con cualquiera de los dos instanciado
+
+traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
+    (ground(F) -> Y is 7-F,
+                  X is C-5);
+    (F is 7-Y, C is X+5).
+
+%%TODO: parametrizar con dimension del tablero
 
 %% mover(+E,?LP,?E2)
 %
@@ -147,6 +161,12 @@ posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
 % y de cambiar el turno.
 
 mover(E,_,E). % TODO
+
+%una instancia particular para testear, consiste en, a partir del estado inicial,
+% mover hacia el norte
+
+%mover(E,[p()],E2).
+
 
 
 %% gol(+E,?NJugador)

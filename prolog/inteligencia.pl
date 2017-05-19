@@ -15,7 +15,7 @@ nombre("Grupo 04").
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
-niveles_minimax(_). % TODO
+niveles_minimax(1). % TODO
 
 
 %% hacer_jugada(+E,?LP,?E2)
@@ -25,5 +25,8 @@ niveles_minimax(_). % TODO
 % El turno de jugar en el estado E es el de la inteligencia,
 % mientras que en E2 es del otro jugador.
 
-hacer_jugada(E,LP,E2):-
-    mover(E,LP,E2). % TODO
+%hacer_jugada(E,LP,E2):-
+%    mover(E,LP,E2). % TODO
+
+hacer_jugada(E,[p(0,1)],E2):-
+    mover(E,[p(0,1)],E2). % TODO

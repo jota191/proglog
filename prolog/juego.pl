@@ -211,7 +211,9 @@ turno(estado(_,_,turno(J)),J).
 % sin llegar a formar un movimiento.
 % (Se usa para validar las jugadas de un jugador humano)
 
-prefijo_movimiento(_,_). % TODO
+%prefijo_movimiento(_,_). % TODO
+prefijo_movimiento(E,[]) :-
+    estado_inicial(E).
 
 
 %% para testear estado inicial

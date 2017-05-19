@@ -87,7 +87,8 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
     nuevo_valor_celda_f(13,3,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(13,7,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(13,8,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),!.
+    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),
+    nuevo_valor_celda_f(7,5,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
     %% inicializar_bandas(+Tablero)
 % Setea el estado de las bandas del tablero, oeste y este
@@ -139,7 +140,7 @@ posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
 
 
 
-%% traducir/2 (?Interna,?Interfaz)
+%% traducir_coordenadas/2 (?Interna,?Interfaz)
 %
 % traduce de coordenadas internas ((1,1) es el vértice
 % de arriba a la izquierda)
@@ -151,8 +152,8 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
     (ground(F) -> Y is 7-F,
                   X is C-5);
     (F is 7-Y, C is X+5).
+    %%TODO: parametrizar con dimension del tablero
 
-%%TODO: parametrizar con dimension del tablero
 
 %% mover(+E,?LP,?E2)
 %
@@ -160,12 +161,16 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
 % a través de las posiciones de la lista LP en el estado E
 % y de cambiar el turno.
 
-mover(E,_,E). % TODO
+%mover(E,_,E). % TODO
 
 %una instancia particular para testear, consiste en, a partir del estado inicial,
 % mover hacia el norte
 
-%mover(E,[p()],E2).
+mover(Einput,[p(0,1)],Eoutput) :-
+    Einput = estado(Tablero,pelota(7,5),turno(1)),
+    nuevo_valor_celda_f(7,5,Tablero,vertice(true,[ne,e,se,s,sw,w,nw])),
+    nuevo_valor_celda_f(6,5,Tablero,vertice(true,[n,ne,e,se,sw,w,nw])),
+    Eoutput = estado(Tablero,pelota(6,5),turno(2)).
 
 
 
@@ -195,7 +200,7 @@ gol(estado(_Tablero,pelota(M,N),_),2):-
 % NJugador es el jugador que tiene que mover en el siguiente turno
 % para el estado E.
 
-turno(estado(_,_,J),J).
+turno(estado(_,_,turno(J)),J).
 
 
 
@@ -225,7 +230,7 @@ print_Estado(_).
 %vertices afuera, que solo existen en las filas de los arcos
 print_cell(vertice(_,[])) :- write(' '),!.
 %vertices internos
-print_cell(vertice(false,[n,ne,e,se,s,sw,w,nw])) :-
+print_cell(vertice(_,[n,ne,e,se,s,sw,w,nw])) :-
     write('┼'),!. %unicode 253C
 %vertices bandas
 print_cell(vertice(_,[ne,e,se])) :-

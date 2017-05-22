@@ -203,7 +203,7 @@ snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 gol(estado(_Tablero,pelota(F,C),_),1):-
     cantidad_casilleros(C,_F),
     C2 is div(C,2) + 1,%pelota en columna central
-    F2 is 1, % en fila 1
+    F is 1, % en fila 1
     abs(C2-C) =< 1,!.
 
 gol(estado(_Tablero,pelota(F,C),_),2):-
@@ -253,6 +253,7 @@ prefijo_movimiento2(E,L) :-
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
     arg(1,E,Tablero),
     valor_celda_f(F,C,Tablero,vertice(true,_)).
+    %F /= 1. %%si estoy en el arco, no es prefijo
 
 prefijo_movimiento(E,L) :-
     prefijo_movimiento2(E,L),
@@ -309,13 +310,61 @@ mover_pelota(E,e) :-
 mover_pelota(E,w) :-
     E =.. [estado,Tablero,pelota(F,C),_J],
     valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
-    eliminar_direccion(Dirs,e,NewDirs),
+    eliminar_direccion(Dirs,w,NewDirs),
     nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
     CNew is C-1,
     valor_celda_f(F,CNew,Tablero,vertice(Vis2,Dirs2)),
     eliminar_direccion(Dirs2,e,NewDirs2),
     nuevo_valor_celda_f(F,CNew,Tablero,vertice(Vis2,NewDirs2)),
     setarg(2,E,pelota(F,CNew)).
+
+mover_pelota(E,ne) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,ne,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C+1,
+    FNew is F-1,
+    valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,sw,NewDirs2),
+    nuevo_valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,CNew)).
+
+mover_pelota(E,sw) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,sw,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C-1,
+    FNew is F+1,
+    valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,ne,NewDirs2),
+    nuevo_valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,CNew)).
+
+mover_pelota(E,nw) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,nw,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C-1,
+    FNew is F-1,
+    valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,se,NewDirs2),
+    nuevo_valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,CNew)).
+
+mover_pelota(E,se) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,se,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C+1,
+    FNew is F+1,
+    valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,nw,NewDirs2),
+    nuevo_valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,CNew)).
 
 
 %TODO: faltan las diagonales

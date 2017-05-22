@@ -122,11 +122,11 @@ inicializar_bandas(_).
 */
 
 %% inicial_medio(?Vertice)
-% predicado que define las casillas iniciales del medio del tablero
+% predicado que define los vértices iniciales del medio del tablero
 inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 
 %% inicial_{oeste|este}(?Vertice)
-% predicado que define las casillas iniciales del {oeste|este} del tablero
+% predicado que define los vértices iniciales del {oeste|este} del tablero
 inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
 
@@ -166,11 +166,32 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
 %una instancia particular para testear, consiste en, a partir del estado inicial,
 % mover hacia el norte
 
-mover(Einput,[p(0,1)],Eoutput) :-
-    Einput = estado(Tablero,pelota(7,5),turno(1)),
-    nuevo_valor_celda_f(7,5,Tablero,vertice(true,[ne,e,se,s,sw,w,nw])),
-    nuevo_valor_celda_f(6,5,Tablero,vertice(true,[n,ne,e,se,sw,w,nw])),
-    Eoutput = estado(Tablero,pelota(6,5),turno(2)).
+%mover(Einput,[p(0,1)],Eoutput) :-
+%    Einput = estado(Tablero,pelota(7,5),turno(1)),
+%    nuevo_valor_celda_f(7,5,Tablero,vertice(true,[ne,e,se,s,sw,w,nw])),
+%    nuevo_valor_celda_f(6,5,Tablero,vertice(true,[n,ne,e,se,sw,w,nw])),
+%    Eoutput = estado(Tablero,pelota(6,5),turno(2)).
+
+
+mover(E,L,EOutput) :-
+    snoc(Prefix,p(X,Y),L),
+    prefijo_movimiento2(E,Prefix),
+    mover_pelota(E,_D),
+    posicion_pelota(E,p(X,Y)),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    arg(1,E,Tablero),
+    valor_celda_f(F,C,Tablero,vertice(false,Dirs)),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
+    EOutput = E.
+
+% el ultimo movimiento del prefijo se inserta al final de la lista,
+% implemento este snoc para salir del paso pero es mejorable
+% en cuanto a la performance i se usan predicados extralogicos
+
+% snoc/2(+L,?X,?L2) 
+snoc([],X,[X]).
+snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 
 
 
@@ -179,20 +200,17 @@ mover(Einput,[p(0,1)],Eoutput) :-
 % La pelota está en situación de gol a favor del jugador NJugador
 % para el estado E.
 
-gol(estado(_Tablero,pelota(M,N),_),1):-
+gol(estado(_Tablero,pelota(F,C),_),1):-
     cantidad_casilleros(C,_F),
-    N2 is div(C,2) + 1,%pelota en columna central
-    M2 is 1, % en fila 1
-    abs(N2-N) =< 1,
-    abs(M2-M) =< 1,!.
+    C2 is div(C,2) + 1,%pelota en columna central
+    F2 is 1, % en fila 1
+    abs(C2-C) =< 1,!.
 
-gol(estado(_Tablero,pelota(M,N),_),2):-
+gol(estado(_Tablero,pelota(F,C),_),2):-
     cantidad_casilleros(C,F),
-    N2 is div(C,2) + 1,%pelota en columna central
-    M2 is F+3, % en la ultima fila
-    abs(N2-N) =< 1,
-    abs(M2-M) =< 1.
-
+    C2 is div(C,2) + 1,%pelota en columna central
+    F2 is F+3, % en la ultima fila
+    abs(C2-C) =< 1.
 
 
 %% turno(+E,?NJugador)
@@ -203,6 +221,15 @@ gol(estado(_Tablero,pelota(M,N),_),2):-
 turno(estado(_,_,turno(J)),J).
 
 
+%% eliminar_direccion(+LDirIn,+Dir,?LDirOut)
+%
+% elimina la direccion D de la lista de direcciones LDirIn
+% se implementa trivialmente con sin_elem del lab1, prefiero usar este wrapper
+% por si despues optimizamos el conjunto de direcciones como algo que no sea
+% una lista o así
+
+eliminar_direccion(LDirIn,Dir,LDirOut) :-
+    sin_elem(LDirIn,Dir,LDirOut),!.
 
 %% prefijo_movimiento(+E,+LP)
 %
@@ -211,15 +238,94 @@ turno(estado(_,_,turno(J)),J).
 % sin llegar a formar un movimiento.
 % (Se usa para validar las jugadas de un jugador humano)
 
+% La diferencia entre un prefijo y un movimiento, es que en el prefijo
+% todos los pasos se dan sobre casillas ya. (De hecho un movimiento toca
+% exactamente UNA casilla sin visitar, la última)
+
 %prefijo_movimiento(_,_). % TODO
-prefijo_movimiento(E,[]) :-
-    estado_inicial(E).
+prefijo_movimiento2(E,[]).
+
+prefijo_movimiento2(E,L) :-
+    snoc(Prefijo,p(X,Y),L),
+    prefijo_movimiento2(E,Prefijo),
+    mover_pelota(E,_D),
+    posicion_pelota(E,p(X,Y)),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    arg(1,E,Tablero),
+    valor_celda_f(F,C,Tablero,vertice(true,_)).
+
+prefijo_movimiento(E,L) :-
+    prefijo_movimiento2(E,L),
+    L \= [].
+
 
 
 %% para testear estado inicial
 % (estado_inicial(E),juego:print_Estado(E)) imprime un dibujito con sentido
 % (esto fué de hecho bastante útil y encontré bugs)
 
+
+
+
+%% mover_pelota(+E,Dir)
+% --predicado impuro (efecto sobre E)
+% realiza un movimiento de la pelota en el estado E, en la direccion Dir
+%
+
+
+mover_pelota(E,n) :-
+    E =.. [estado,Tablero,pelota(F,C),turno(J)],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,n,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    FNew is F-1,
+    valor_celda_f(FNew,C,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,s,NewDirs2),
+    nuevo_valor_celda_f(FNew,C,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,C)).
+
+mover_pelota(E,s) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,s,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    FNew is F+1,
+    valor_celda_f(FNew,C,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,n,NewDirs2),
+    nuevo_valor_celda_f(FNew,C,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(FNew,C)).
+
+mover_pelota(E,e) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,e,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C+1,
+    valor_celda_f(F,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,w,NewDirs2),
+    nuevo_valor_celda_f(F,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(F,CNew)).
+
+mover_pelota(E,w) :-
+    E =.. [estado,Tablero,pelota(F,C),_J],
+    valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
+    eliminar_direccion(Dirs,e,NewDirs),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),
+    CNew is C-1,
+    valor_celda_f(F,CNew,Tablero,vertice(Vis2,Dirs2)),
+    eliminar_direccion(Dirs2,e,NewDirs2),
+    nuevo_valor_celda_f(F,CNew,Tablero,vertice(Vis2,NewDirs2)),
+    setarg(2,E,pelota(F,CNew)).
+
+
+%TODO: faltan las diagonales
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%TESTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 print_Estado(estado(Board,_,_)) :-
     between(1,13,F),
     nl,
@@ -264,6 +370,20 @@ print_cell(vertice(_,[se,s,sw,w,nw])) :-
     write('╄'),!.
 
 print_cell(_) :- write('X').%no deberían aparecer X en el tablero inicial
+
+
+print_Visitas(estado(Board,_,_)) :-
+    between(1,13,F),
+    nl,
+    between(1,9,C),
+    valor_celda_f(F,C,Board,V),
+    print_vis(V),
+    fail.
+print_Visitas(_).
+
+%vertices afuera, que solo existen en las filas de los arcos
+print_vis(vertice(false,_)) :- write(' '),!.
+print_vis(vertice(true,_)) :- write('X'),!.
 
 
 /*con un tablero inicial deberia imprimirse:

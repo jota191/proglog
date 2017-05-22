@@ -202,7 +202,7 @@ snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 % para el estado E.
 
 gol(estado(_Tablero,pelota(F,C),_),1):-
-    cantidad_casilleros(NCols,NFilas),
+    cantidad_casilleros(NCols,_NFilas),
     Central is div(NCols,2) + 1,%pelota en columna central
     F is 1, % en fila 1
     abs(Central-C) =< 1,!.
@@ -244,7 +244,7 @@ eliminar_direccion(LDirIn,Dir,LDirOut) :-
 % exactamente UNA casilla sin visitar, la última)
 
 %prefijo_movimiento(_,_). % TODO
-prefijo_movimiento2(E,[]).
+prefijo_movimiento2(_E,[]).
 
 prefijo_movimiento2(E,L) :-
     snoc(Prefijo,p(X,Y),L),
@@ -276,7 +276,7 @@ prefijo_movimiento(E,L) :-
 
 
 mover_pelota(E,n) :-
-    E =.. [estado,Tablero,pelota(F,C),turno(J)],
+    E =.. [estado,Tablero,pelota(F,C),turno(_J)],
     valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),
     eliminar_direccion(Dirs,n,NewDirs),
     nuevo_valor_celda_f(F,C,Tablero,vertice(Vis,NewDirs)),

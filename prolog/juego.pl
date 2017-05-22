@@ -55,20 +55,21 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
     nuevo_valor_celda_f(2,3,Tablero,vertice(true,[se,s,sw])),
     nuevo_valor_celda_f(2,7,Tablero,vertice(true,[se,s,sw])),
     nuevo_valor_celda_f(2,8,Tablero,vertice(true,[se,s,sw])),
-    nuevo_valor_celda_f(1,5,Tablero,vertice(true,[se,s,sw])),%arco
 
     %borde sur
     nuevo_valor_celda_f(12,2,Tablero,vertice(true,[n,ne,nw])),
     nuevo_valor_celda_f(12,3,Tablero,vertice(true,[n,ne,nw])),
     nuevo_valor_celda_f(12,7,Tablero,vertice(true,[n,ne,nw])),
     nuevo_valor_celda_f(12,8,Tablero,vertice(true,[n,ne,nw])),
-    nuevo_valor_celda_f(13,5,Tablero,vertice(true,[n,ne,nw])),%arco
 
-    %dentro del arco (igual a esquinas)
-    nuevo_valor_celda_f(1,4,Tablero,vertice(true,[se])),
-    nuevo_valor_celda_f(1,6,Tablero,vertice(true,[sw])),
-    nuevo_valor_celda_f(13,4,Tablero,vertice(true,[ne])),
-    nuevo_valor_celda_f(13,6,Tablero,vertice(true,[nw])),
+    %dentro del arco
+    nuevo_valor_celda_f(1,4,Tablero,vertice(false,[se])),
+    nuevo_valor_celda_f(1,6,Tablero,vertice(false,[sw])),
+    nuevo_valor_celda_f(13,4,Tablero,vertice(false,[ne])),
+    nuevo_valor_celda_f(13,6,Tablero,vertice(false,[nw])),
+
+    nuevo_valor_celda_f(13,5,Tablero,vertice(false,[n,ne,nw])),%arco
+    nuevo_valor_celda_f(1,5,Tablero,vertice(false,[se,s,sw])),%arco
 
     %palos
     nuevo_valor_celda_f(2,4,Tablero,vertice(true,[ne,e,se,s,sw])),
@@ -201,16 +202,16 @@ snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 % para el estado E.
 
 gol(estado(_Tablero,pelota(F,C),_),1):-
-    cantidad_casilleros(C,_F),
-    C2 is div(C,2) + 1,%pelota en columna central
+    cantidad_casilleros(NCols,NFilas),
+    Central is div(NCols,2) + 1,%pelota en columna central
     F is 1, % en fila 1
-    abs(C2-C) =< 1,!.
+    abs(Central-C) =< 1,!.
 
-gol(estado(_Tablero,pelota(F,C),_),2):-
-    cantidad_casilleros(C,F),
-    C2 is div(C,2) + 1,%pelota en columna central
-    F2 is F+3, % en la ultima fila
-    abs(C2-C) =< 1.
+gol(estado(_Tablero,pelota(F,C),_),1):-
+    cantidad_casilleros(NCols,NFilas),
+    Central is div(NCols,2) + 1,%pelota en columna central
+    F is NFilas+3,
+    abs(Central-C) =< 1,!.
 
 
 %% turno(+E,?NJugador)
@@ -365,9 +366,6 @@ mover_pelota(E,se) :-
     eliminar_direccion(Dirs2,nw,NewDirs2),
     nuevo_valor_celda_f(FNew,CNew,Tablero,vertice(Vis2,NewDirs2)),
     setarg(2,E,pelota(FNew,CNew)).
-
-
-%TODO: faltan las diagonales
 
 
 

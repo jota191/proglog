@@ -21,6 +21,7 @@
 
 cantidad_casilleros(8,10).
 
+tablero_offset(HalfWidth,HalfHeight) :- cantidad_casilleros(Width, Height), HalfWidth is Width / 2, HalfHeight is Height / 2.
 
 %% estado_inicial(?E)
 %
@@ -41,10 +42,12 @@ cantidad_casilleros(8,10).
 estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
     cantidad_casilleros(K,L),
     M is L+3,  % modifico las dimensiones porque cuento vertices, y porque
-    N is K+1,  % hay una fila mas atrasde cada arco
+    N is K+1,  % hay una fila mas atras de cada arco
     inicial_medio(Medio),
-    matriz_f(M,N,Medio,Tablero),
-    inicializar_bandas(Tablero),
+    matriz_f(M,N,Medio,Tablero), % se inicializa a cada vertice como si
+    % tuviera todos los movimientos disponibles, y despues
+    % se cambian aquellos que esten mas limitados
+    inicializar_bandas(Tablero), % se inicializan celdas de extremos este y oeste
     %esquinas
     nuevo_valor_celda_f(2,1,Tablero,vertice(true,[se])),
     nuevo_valor_celda_f(2,9,Tablero,vertice(true,[sw])),
@@ -207,7 +210,7 @@ gol(estado(_Tablero,pelota(F,C),_),1):-
     F is 1, % en fila 1
     abs(Central-C) =< 1,!.
 
-gol(estado(_Tablero,pelota(F,C),_),1):-
+gol(estado(_Tablero,pelota(F,C),_),2):-
     cantidad_casilleros(NCols,NFilas),
     Central is div(NCols,2) + 1,%pelota en columna central
     F is NFilas+3,

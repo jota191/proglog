@@ -21,7 +21,7 @@
 
 cantidad_casilleros(8,10).
 
-tablero_offset(HalfWidth,HalfHeight) :- cantidad_casilleros(Width, Height), HalfWidth is Width / 2, HalfHeight is Height / 2.
+%% tablero_offset(HalfWidth,HalfHeight) :- cantidad_casilleros(Width, Height), HalfWidth is Width / 2, HalfHeight is Height / 2.
 
 %% estado_inicial(?E)
 %
@@ -99,16 +99,19 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
 % TODO : parametrizar segun el tamaño del tablero
 
 inicializar_bandas(Tablero) :-
-    inicializar_bandas(Tablero,3).
+    cantidad_casilleros(CantidadColumnas,CantidadFilas),
+    MaximaColumna is CantidadColumnas + 1,
+    MaximaFila is CantidadFilas + 2,
+    inicializar_bandas(Tablero,3,MaximaFila,MaximaColumna).
 
-inicializar_bandas(_Tablero,12). %paro
-inicializar_bandas(Tablero,F) :-
+inicializar_bandas(_Tablero,MaximaFila,MaximaFila,_). %paro
+inicializar_bandas(Tablero,F,MaximaFila,MaximaColumna) :-
     inicial_oeste(Oeste),
     inicial_este(Este),
     nuevo_valor_celda_f(F,1,Tablero,Oeste),
-    nuevo_valor_celda_f(F,9,Tablero,Este),
+    nuevo_valor_celda_f(F,MaximaColumna,Tablero,Este),
     NewF is F+1,
-    inicializar_bandas(Tablero,NewF).
+    inicializar_bandas(Tablero,NewF,MaximaFila,MaximaColumna).
 
 /* en esto me confundí feo y lo dejo como referencia,
 que los predicados eficientes del lab1 tengan efectos no implica que no se haga
@@ -134,15 +137,12 @@ inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
 
-
 %% posicion_pelota(+E,?P)
 %
 % P es la posición de la pelota para el estado E.
 
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
     traducir_coordenadas(interna(M,N),interfaz(X,Y)).
-
-
 
 %% traducir_coordenadas/2 (?Interna,?Interfaz)
 %
@@ -152,12 +152,16 @@ posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
 % el vértice central del tablero)
 % funciona con cualquiera de los dos instanciado
 
-traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
-    (ground(F) -> Y is 7-F,
-                  X is C-5);
-    (F is 7-Y, C is X+5).
-    %%TODO: parametrizar con dimension del tablero
+traducir_coordenadas(Interna,Interfaz) :-
+    cantidad_casilleros(Ancho,Alto),
+    OffsetColumna is div(Ancho,2) + 1,
+    OffsetFila is div(Alto,2) + 2,
+    traducir_coordenadas(Interna,Interfaz,OffsetFila,OffsetColumna).
 
+traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
+    (ground(F) -> Y is OffsetFila-F,
+                  X is C-OffsetColumna);
+    (F is OffsetFila-Y, C is X+OffsetColumna).
 
 %% mover(+E,?LP,?E2)
 %

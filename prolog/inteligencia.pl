@@ -28,5 +28,8 @@ niveles_minimax(1). % TODO
 %hacer_jugada(E,LP,E2):-
 %    mover(E,LP,E2). % TODO
 
+% LP es la lista de movimientos hasta ahora
+% E es el estado previo, y E2 el resultante
+
 hacer_jugada(E,[p(0,1)],E2):-
     mover(E,[p(0,1)],E2). % TODO

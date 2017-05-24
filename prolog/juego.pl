@@ -21,6 +21,7 @@
 
 cantidad_casilleros(8,10).
 
+%% tablero_offset(HalfWidth,HalfHeight) :- cantidad_casilleros(Width, Height), HalfWidth is Width / 2, HalfHeight is Height / 2.
 
 %% estado_inicial(?E)
 %
@@ -38,29 +39,34 @@ cantidad_casilleros(8,10).
 % representamos a los vértices con un booleano que indica si fue visitado
 % y una lista de las direcciones a las que se puede ir desde el mismo
 
-estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
+estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     cantidad_casilleros(K,L),
     M is L+3,  % modifico las dimensiones porque cuento vertices, y porque
-    N is K+1,  % hay una fila mas atrasde cada arco
+    N is K+1,  % hay una fila mas atras de cada arco
+    PelotaX is div(M,2) + 1,
+    PelotaY is div(N,2) + 1,
+    FilaEsquinaInferior is M - 1,
     inicial_medio(Medio),
-    matriz_f(M,N,Medio,Tablero),
-    inicializar_bandas(Tablero),
+    FilasMatriz is M + 1,
+    ColumnasMatriz is N + 1,
+    matriz_f(FilasMatriz,ColumnasMatriz,Medio,Tablero), % se inicializa a cada vertice como si
+    % tuviera todos los movimientos disponibles, y despues
+    % se cambian aquellos que esten mas limitados
+    inicializar_bandas(Tablero,N,M), % se inicializan celdas de extremos este y oeste
     %esquinas
     nuevo_valor_celda_f(2,1,Tablero,vertice(true,[se])),
-    nuevo_valor_celda_f(2,9,Tablero,vertice(true,[sw])),
-    nuevo_valor_celda_f(12,1,Tablero,vertice(true,[ne])),
-    nuevo_valor_celda_f(12,9,Tablero,vertice(true,[nw])),
-    %borde norte
-    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[se,s,sw])),
-    nuevo_valor_celda_f(2,3,Tablero,vertice(true,[se,s,sw])),
-    nuevo_valor_celda_f(2,7,Tablero,vertice(true,[se,s,sw])),
-    nuevo_valor_celda_f(2,8,Tablero,vertice(true,[se,s,sw])),
+    nuevo_valor_celda_f(2,N,Tablero,vertice(true,[sw])),
+    nuevo_valor_celda_f(FilaEsquinaInferior,1,Tablero,vertice(true,[ne])),
+    nuevo_valor_celda_f(FilaEsquinaInferior,N,Tablero,vertice(true,[nw])),
 
-    %borde sur
-    nuevo_valor_celda_f(12,2,Tablero,vertice(true,[n,ne,nw])),
-    nuevo_valor_celda_f(12,3,Tablero,vertice(true,[n,ne,nw])),
-    nuevo_valor_celda_f(12,7,Tablero,vertice(true,[n,ne,nw])),
-    nuevo_valor_celda_f(12,8,Tablero,vertice(true,[n,ne,nw])),
+    % lineas de meta
+    % vertices que no son esquina pero tampoco linea de meta propiamente dicho
+    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[s,se])),
+    N1 is N - 1,
+    nuevo_valor_celda_f(2,N1,Tablero,vertice(true,[s,sw])),
+    nuevo_valor_celda_f(FilaEsquinaInferior,2,Tablero,vertice(true,[n,ne])),
+    nuevo_valor_celda_f(FilaEsquinaInferior,N1,Tablero,vertice(true,[n,nw])),    
+    inicializar_lineas_meta(Tablero,N,M),
 
     %dentro del arco
     nuevo_valor_celda_f(1,4,Tablero,vertice(false,[se])),
@@ -91,21 +97,53 @@ estado_inicial(estado(Tablero,pelota(7,5),turno(1))) :-
     nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(7,5,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
-    %% inicializar_bandas(+Tablero)
+    %% inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las bandas del tablero, oeste y este
-% TODO : parametrizar segun el tamaño del tablero
 
-inicializar_bandas(Tablero) :-
-    inicializar_bandas(Tablero,3).
+inicializar_lineas_meta(Tablero,CantidadColumnas,CantidadFilas) :-
+    C is CantidadColumnas - 1, % ajusto columnas para no incluir vertices
+    % que no son esquina pero tampoco linea de meta
+    inicializar_linea_meta(Tablero,2,3,C),
+    UltimaLineaMeta is CantidadFilas - 1,
+    inicializar_linea_meta(Tablero,UltimaLineaMeta,3,C).
 
-inicializar_bandas(_Tablero,12). %paro
-inicializar_bandas(Tablero,F) :-
+% inicializar_linea_meta(+Tablero,+Fila,+ColumnaActual,+CantidadColumnas)
+% Recorre la fila indicada por Fila inicializando los vertices de acuerdo a inicial_borde_norte,
+% a excepcion de los palos del arco o vertices internos al arco
+inicializar_linea_meta(_,_,CantidadColumnas,CantidadColumnas).
+inicializar_linea_meta(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
+    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true,
+    NuevaColumnaActual is ColumnaActual + 1,
+    inicializar_linea_meta(Tablero,Fila,NuevaColumnaActual,CantidadColumnas).
+
+% columna_fuera_arco(+Columna,+CantidadColumnas) 
+% La columna dada en Columna no es interna a un arco ni coincide con las de sus palos
+columna_fuera_arco(Columna,CantidadColumnas) :-
+    ColumnaPaloIzq is div(CantidadColumnas,2),
+    Columna > 0,
+    Columna < ColumnaPaloIzq, !.
+
+columna_fuera_arco(Columna,CantidadColumnas) :-
+    ColumnaPaloDer is div(CantidadColumnas,2) + 2,
+    Columna =< CantidadColumnas,
+    Columna > ColumnaPaloDer.
+
+
+    %% inicializar_bandas(+Tablero,+CantidadColumnas,+CantidadFilas)
+% Setea el estado de las bandas del tablero, oeste y este
+
+inicializar_bandas(Tablero,CantidadColumnas,CantidadFilas) :-
+    MaximaFila is CantidadFilas - 1,
+    inicializar_bandas(Tablero,3,MaximaFila,CantidadColumnas). % se arranca por la fila 3 (debajo del arco)
+
+inicializar_bandas(_Tablero,MaximaFila,MaximaFila,_). %paro
+inicializar_bandas(Tablero,F,MaximaFila,MaximaColumna) :-
     inicial_oeste(Oeste),
     inicial_este(Este),
     nuevo_valor_celda_f(F,1,Tablero,Oeste),
-    nuevo_valor_celda_f(F,9,Tablero,Este),
+    nuevo_valor_celda_f(F,MaximaColumna,Tablero,Este),
     NewF is F+1,
-    inicializar_bandas(Tablero,NewF).
+    inicializar_bandas(Tablero,NewF,MaximaFila,MaximaColumna).
 
 /* en esto me confundí feo y lo dejo como referencia,
 que los predicados eficientes del lab1 tengan efectos no implica que no se haga
@@ -130,6 +168,8 @@ inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 % predicado que define los vértices iniciales del {oeste|este} del tablero
 inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
+inicial_borde_norte(vertice(true,[se,s,sw])).
+inicial_borde_sur(vertice(true,[n,ne,nw])).
 
 
 %% posicion_pelota(+E,?P)
@@ -139,8 +179,6 @@ inicial_este(vertice(true,[sw,w,nw])).
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
     traducir_coordenadas(interna(M,N),interfaz(X,Y)).
 
-
-
 %% traducir_coordenadas/2 (?Interna,?Interfaz)
 %
 % traduce de coordenadas internas ((1,1) es el vértice
@@ -149,12 +187,16 @@ posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
 % el vértice central del tablero)
 % funciona con cualquiera de los dos instanciado
 
-traducir_coordenadas(interna(F,C),interfaz(X,Y)) :-
-    (ground(F) -> Y is 7-F,
-                  X is C-5);
-    (F is 7-Y, C is X+5).
-    %%TODO: parametrizar con dimension del tablero
+traducir_coordenadas(Interna,Interfaz) :-
+    cantidad_casilleros(Ancho,Alto),
+    OffsetColumna is div(Ancho,2) + 1,
+    OffsetFila is div(Alto,2) + 2,
+    traducir_coordenadas(Interna,Interfaz,OffsetFila,OffsetColumna).
 
+traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
+    (ground(F) -> Y is OffsetFila-F,
+                  X is C-OffsetColumna);
+    (F is OffsetFila-Y, C is X+OffsetColumna).
 
 %% mover(+E,?LP,?E2)
 %
@@ -207,7 +249,7 @@ gol(estado(_Tablero,pelota(F,C),_),1):-
     F is 1, % en fila 1
     abs(Central-C) =< 1,!.
 
-gol(estado(_Tablero,pelota(F,C),_),1):-
+gol(estado(_Tablero,pelota(F,C),_),2):-
     cantidad_casilleros(NCols,NFilas),
     Central is div(NCols,2) + 1,%pelota en columna central
     F is NFilas+3,

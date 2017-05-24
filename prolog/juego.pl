@@ -216,6 +216,16 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
 %    Eoutput = estado(Tablero,pelota(6,5),turno(2)).
 
 
+mover(E,[p(X,Y)|Prefijo],ENew) :-
+    mover_pelota(E,D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    valor_celda_f(F,C,Tablero,vertice(false,_)),
+    prefijo_movimiento2(E,Prefijo),
+    ENew = E.
+
+/*
 mover(E,L,EOutput) :-
     snoc(Prefix,p(X,Y),L),
     prefijo_movimiento2(E,Prefix),
@@ -227,7 +237,7 @@ mover(E,L,EOutput) :-
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
     EOutput = E.
-
+*/
 % el ultimo movimiento del prefijo se inserta al final de la lista,
 % implemento este snoc para salir del paso pero es mejorable
 % en cuanto a la performance i se usan predicados extralogicos
@@ -320,8 +330,6 @@ prefijo_movimiento(E,L) :-
     prefijo_movimiento2(E,L),
     L \= [].
 
-list([]).
-list([1|X]) :- list(X).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

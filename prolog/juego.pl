@@ -65,7 +65,7 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     N1 is N - 1,
     nuevo_valor_celda_f(2,N1,Tablero,vertice(true,[s,sw])),
     nuevo_valor_celda_f(FilaEsquinaInferior,2,Tablero,vertice(true,[n,ne])),
-    nuevo_valor_celda_f(FilaEsquinaInferior,N1,Tablero,vertice(true,[n,nw])),    
+    nuevo_valor_celda_f(FilaEsquinaInferior,N1,Tablero,vertice(true,[n,nw])),
     inicializar_lineas_meta(Tablero,N,M),
 
     %dentro del arco
@@ -232,7 +232,7 @@ mover(E,L,EOutput) :-
 % implemento este snoc para salir del paso pero es mejorable
 % en cuanto a la performance i se usan predicados extralogicos
 
-% snoc/2(+L,?X,?L2) 
+% snoc/2(+L,?X,?L2)
 snoc([],X,[X]).
 snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 
@@ -286,6 +286,7 @@ eliminar_direccion(LDirIn,Dir,LDirOut) :-
 % exactamente UNA casilla sin visitar, la última)
 
 %prefijo_movimiento(_,_). % TODO
+/*
 prefijo_movimiento2(_E,[]).
 
 prefijo_movimiento2(E,L) :-
@@ -301,8 +302,30 @@ prefijo_movimiento2(E,L) :-
 prefijo_movimiento(E,L) :-
     prefijo_movimiento2(E,L),
     L \= [].
+*/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+prefijo_movimiento2(_,[]).
+
+prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
+    mover_pelota(E,D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    valor_celda_f(F,C,Tablero,vertice(true,_)),
+    prefijo_movimiento2(E,Prefijo).
+
+prefijo_movimiento(E,L) :-
+    prefijo_movimiento2(E,L),
+    L \= [].
+
+list([]).
+list([1|X]) :- list(X).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% para testear estado inicial
 % (estado_inicial(E),juego:print_Estado(E)) imprime un dibujito con sentido

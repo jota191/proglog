@@ -61,7 +61,7 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
 
     % lineas de meta
     % vertices que no son esquina pero tampoco linea de meta propiamente dicho
-    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[s,se])),
+    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[se,s,sw])),
     N1 is N - 1,
     nuevo_valor_celda_f(2,N1,Tablero,vertice(true,[s,sw])),
     nuevo_valor_celda_f(FilaEsquinaInferior,2,Tablero,vertice(true,[n,ne])),
@@ -216,7 +216,7 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
 %    Eoutput = estado(Tablero,pelota(6,5),turno(2)).
 
 
-mover(E,L,EOutput) :-
+/*mover(E,L,EOutput) :-
     snoc(Prefix,p(X,Y),L),
     prefijo_movimiento2(E,Prefix),
     mover_pelota(E,_D),
@@ -227,6 +227,24 @@ mover(E,L,EOutput) :-
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
     EOutput = E.
+*/
+mover(E,L,EOut) :-
+    prefijo_movimiento2(E,Prefijo),
+    mover_pelota(E,D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    snoc(Prefijo,p(X,Y),L),
+
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    arg(1,E,Tablero),
+
+    valor_celda_f(F,C,Tablero,vertice(false,Dirs)),
+
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
+
+    EOut = E.
+
 
 % el ultimo movimiento del prefijo se inserta al final de la lista,
 % implemento este snoc para salir del paso pero es mejorable

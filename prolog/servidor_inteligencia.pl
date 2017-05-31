@@ -1,5 +1,4 @@
-:- module(servidor_inteligencia,[servidor_inteligencia/0,
-                                 servidor_inteligencia/1]).
+:- module(servidor_inteligencia,[servidor_inteligencia/0,servidor_inteligencia/1]).
 
 :- use_module(library(http/http_client)).
 :- use_module(library(http/http_cors)).
@@ -40,8 +39,7 @@ handler_hacer_jugada(Request):-
     hacer_jugada(E,LP,E2),
     format('Content-type: text/plain~n~n~w~n~w',[LP,E2]).
 
-% Lo siguiente sirve para modificar el estado que maneja la inteligencia,
-% de manera independiente a cómo lo hace.
+% Lo siguiente sirve para modificar el estado que maneja la inteligencia, de manera independiente a cómo lo hace.
 
 :- http_handler('/estado_inicial',handler_estado_inicial_inteligencia,[]).
 :- http_handler('/mover',handler_mover_inteligencia,[]).

@@ -294,12 +294,6 @@ mover(E,L,EOut) :-
     EOut = E.
 
 
-
-
-% el ultimo movimiento del prefijo se inserta al final de la lista,
-% implemento este snoc para salir del paso pero es mejorable
-% en cuanto a la performance i se usan predicados extralogicos
-
 % snoc/2(+L,?X,?L2)
 snoc([],X,[X]).
 snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).

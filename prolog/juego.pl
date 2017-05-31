@@ -196,9 +196,6 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
 
 
 
-
-
-
 %% gol(+E,?NJugador)
 %
 % La pelota está en situación de gol a favor del jugador NJugador
@@ -294,8 +291,9 @@ mover(E,L,EOut) :-
     EOut = E.
 
 
-
-
+% snoc/2(+L,?X,?L2)
+snoc([],X,[X]).
+snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 
 
 

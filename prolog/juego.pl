@@ -45,14 +45,14 @@ cantidad_casilleros(8,10).
 estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     cantidad_casilleros(K,L),
     M is L+3,  % modifico las dimensiones porque cuento vertices, y porque
-    N is K+1,  % hay una fila mas atras de cada arco
+    N is K+1,  % hay una fila mas atras de cada linea de meta
     PelotaX is div(M,2) + 1,
     PelotaY is div(N,2) + 1,
     FilaEsquinaInferior is M - 1,
     inicial_medio(Medio),
-    FilasMatriz is M + 1,
-    ColumnasMatriz is N + 1,
-    matriz_f(FilasMatriz,ColumnasMatriz,Medio,Tablero),
+    %% FilasMatriz is M + 1,
+    %% ColumnasMatriz is N + 1,
+    matriz_f(M,N,Medio,Tablero),
     % se inicializa a cada vertice como si
     % tuviera todos los movimientos disponibles, y despues
     % se cambian aquellos que esten mas limitados
@@ -66,22 +66,18 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     nuevo_valor_celda_f(FilaEsquinaInferior,N,Tablero,vertice(true,[nw])),
 
     % lineas de meta
-    % vertices que no son esquina pero tampoco linea de meta propiamente dicho
-    nuevo_valor_celda_f(2,2,Tablero,vertice(true,[se,s,sw])),
-    N1 is N - 1,
-    nuevo_valor_celda_f(2,N1,Tablero,vertice(true,[s,sw])),
-    nuevo_valor_celda_f(FilaEsquinaInferior,2,Tablero,vertice(true,[n,ne])),
-    nuevo_valor_celda_f(FilaEsquinaInferior,N1,Tablero,vertice(true,[n,nw])),
     inicializar_lineas_meta(Tablero,N,M),
 
     %dentro del arco
-    nuevo_valor_celda_f(1,4,Tablero,vertice(false,[se])),
+    %% inicializar_arcos(),
+    nuevo_valor_celda_f(1,4,Tablero,vertice(false,[])),
+    nuevo_valor_celda_f(1,5,Tablero,vertice(false,[se,s,sw])),%arco
     nuevo_valor_celda_f(1,6,Tablero,vertice(false,[sw])),
+
     nuevo_valor_celda_f(13,4,Tablero,vertice(false,[ne])),
+    nuevo_valor_celda_f(13,5,Tablero,vertice(false,[n,ne,nw])),%arco
     nuevo_valor_celda_f(13,6,Tablero,vertice(false,[nw])),
 
-    nuevo_valor_celda_f(13,5,Tablero,vertice(false,[n,ne,nw])),%arco
-    nuevo_valor_celda_f(1,5,Tablero,vertice(false,[se,s,sw])),%arco
 
     %palos
     nuevo_valor_celda_f(2,4,Tablero,vertice(true,[ne,e,se,s,sw])),
@@ -107,11 +103,11 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
 % Setea el estado de las bandas del tablero, oeste y este
 
 inicializar_lineas_meta(Tablero,CantidadColumnas,CantidadFilas) :-
-    C is CantidadColumnas - 1, % ajusto columnas para no incluir vertices
+    %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
     % que no son esquina pero tampoco linea de meta
-    inicializar_linea_meta(Tablero,2,3,C),
+    inicializar_linea_meta(Tablero,2,2,CantidadColumnas),
     UltimaLineaMeta is CantidadFilas - 1,
-    inicializar_linea_meta(Tablero,UltimaLineaMeta,3,C).
+    inicializar_linea_meta(Tablero,UltimaLineaMeta,2,CantidadColumnas).
 
 % inicializar_linea_meta(+Tablero,+Fila,+ColumnaActual,+CantidadColumnas)
 % Recorre la fila indicada por Fila inicializando los vertices
@@ -119,9 +115,21 @@ inicializar_lineas_meta(Tablero,CantidadColumnas,CantidadFilas) :-
 % a excepcion de los palos del arco o vertices internos al arco
 inicializar_linea_meta(_,_,CantidadColumnas,CantidadColumnas).
 inicializar_linea_meta(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
-    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true,
+    actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila),
     NuevaColumnaActual is ColumnaActual + 1,
     inicializar_linea_meta(Tablero,Fila,NuevaColumnaActual,CantidadColumnas).
+
+% Actualiza una celda de la linea de meta para que tome el valor que corresponda
+actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
+    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
+
+
+%% inicializar_arcos(Tablero,CantidadColumnas,CantidadFilas) :-
+%%     C is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
+%%     % que no son esquina pero tampoco linea de meta
+%%     inicializar_linea_meta(Tablero,2,3,C),
+%%     UltimaLineaMeta is CantidadFilas - 1,
+%%     inicializar_linea_meta(Tablero,UltimaLineaMeta,3,C).
 
 % columna_fuera_arco(+Columna,+CantidadColumnas) 
 % La columna dada en Columna no es interna a un arco ni coincide con las de sus palos
@@ -140,6 +148,7 @@ columna_fuera_arco(Columna,CantidadColumnas) :-
 % Setea el estado de las bandas del tablero, oeste y este
 
 inicializar_bandas(Tablero,CantidadColumnas,CantidadFilas) :-
+    % Se ajustan las filas para que no se tome la linea de meta
     MaximaFila is CantidadFilas - 1,
     inicializar_bandas(Tablero,3,MaximaFila,CantidadColumnas).
     % se arranca por la fila 3 (debajo del arco)
@@ -487,8 +496,42 @@ print_vis(vertice(true,_)) :- write('X'),!.
 %% unit test suite
 :- begin_tests(juego).
 
+% Test para determinar si la posicion inicial de la pelota es correcta.
 test(posicion_pelota_inicial) :-
     estado_inicial(E),
     posicion_pelota(E,p(0,0)).
+
+% Test para determinar si el tablero inicializado es correcto.
+test(tablero_inicial_correcto) :-
+    estado_inicial(X),
+    X = estado(matriz(
+    row(vertice(true, []), vertice(true, []), vertice(true, []), vertice(false, []), vertice(false, [se, s, sw]), vertice(false, [sw]), vertice(true, []), vertice(true, []), vertice(true, [])), 
+    row(vertice(true, [se]), vertice(true, [se, s, sw]), vertice(true, [se, s, sw]), vertice(true, [ne, e, se, s, sw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [se, s, sw, w, nw]), vertice(true, [se, s, sw]), vertice(true, [se, s, sw]), vertice(true, [sw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
+    row(vertice(true, [ne]), vertice(true, [n, ne, nw]), vertice(true, [n, ne, nw]), vertice(true, [n, ne, e, se, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [n, ne, sw, w, nw]), vertice(true, [n, ne, nw]), vertice(true, [n, ne, nw]), vertice(true, [nw])), 
+    row(vertice(true, []), vertice(true, []), vertice(true, []), vertice(false, [ne]), vertice(false, [n, ne, nw]), vertice(false, [nw]), vertice(true, []), vertice(true, []), vertice(true, []))), pelota(7, 5), turno(1)).
+
+% Test para predicado columna_fuera_arco.
+test(columna_fuera_arco) :-
+    juego:columna_fuera_arco(3,9),
+    juego:columna_fuera_arco(2,9),
+    juego:columna_fuera_arco(1,9),
+    \+(juego:columna_fuera_arco(0,9)),
+    \+(juego:columna_fuera_arco(6,9)),
+    \+(juego:columna_fuera_arco(5,9)),
+    juego:columna_fuera_arco(7,9),
+    juego:columna_fuera_arco(8,9),
+    juego:columna_fuera_arco(9,9),
+    \+(juego:columna_fuera_arco(10,9)),
+    \+(juego:columna_fuera_arco(10,9)),
+    \+(juego:columna_fuera_arco(10,9)).
 
 :- end_tests(juego).

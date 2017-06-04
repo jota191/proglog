@@ -36,8 +36,6 @@ cantidad_casilleros(8,10).
 %
 % La pelota se representa (aca) con coordenadas del tablero,
 % despues hacia afuera las mandamos con el sistema que la interfaz requiere
-% TODO: la posicion inicial (7,5) esta hardcodeada, hay que calcular el centro
-% en función de las dimensiones del tablero
 % TODO: en general no es parametrico respecto al tamaño del tablero
 % representamos a los vértices con un booleano que indica si fue visitado
 % y una lista de las direcciones a las que se puede ir desde el mismo
@@ -48,7 +46,6 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     N is K+1,  % hay una fila mas atras de cada linea de meta
     PelotaX is div(M,2) + 1,
     PelotaY is div(N,2) + 1,
-    FilaEsquinaInferior is M - 1,
     inicial_medio(Medio),
     %% FilasMatriz is M + 1,
     %% ColumnasMatriz is N + 1,
@@ -58,33 +55,19 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     % se cambian aquellos que esten mas limitados
     inicializar_bandas(Tablero,N,M),
     % se inicializan celdas de extremos este y oeste
-
     %esquinas
     nuevo_valor_celda_f(2,1,Tablero,vertice(true,[se])),
     nuevo_valor_celda_f(2,N,Tablero,vertice(true,[sw])),
+    FilaEsquinaInferior is M - 1,
     nuevo_valor_celda_f(FilaEsquinaInferior,1,Tablero,vertice(true,[ne])),
     nuevo_valor_celda_f(FilaEsquinaInferior,N,Tablero,vertice(true,[nw])),
-
-    % lineas de meta
+    % Lineas de meta.
     inicializar_lineas_meta(Tablero,N,M),
-
-    % inicializacion arco y palos
+    % Inicializacion arco y palos.
     inicializar_arcos_palos(Tablero, N),
-
-    %afuera
-    nuevo_valor_celda_f(1,1,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(1,2,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(1,3,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(1,7,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(1,8,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(1,9,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,1,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,2,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,3,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,7,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,8,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),
-    nuevo_valor_celda_f(7,5,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
+    % Lineas externas.
+    inicializar_lineas_externas(Tablero,N,M),
+    nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
 
 inicializar_arcos_palos(Tablero, CantidadColumnas) :-
@@ -103,6 +86,45 @@ inicializar_arcos_palos(Tablero, CantidadColumnas) :-
     nuevo_valor_celda_f(2,C2,Tablero,vertice(true,[se,s,sw,w,nw])), %este
     nuevo_valor_celda_f(12,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
     nuevo_valor_celda_f(12,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
+
+
+
+
+
+
+
+
+
+
+%% inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
+% Setea el estado de las lineas externas al tablero
+inicializar_lineas_externas(Tablero,CantidadColumnas,CantidadFilas) :-
+    %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
+    % que no son esquina pero tampoco linea de meta
+    inicializar_linea_externa(Tablero,1,1,CantidadColumnas),
+    inicializar_linea_externa(Tablero,CantidadFilas,1,CantidadColumnas).
+
+inicializar_linea_externa(Tablero,Fila,CantidadColumnas,CantidadColumnas) :- actualizar_celda_linea_externa(Tablero, CantidadColumnas, CantidadColumnas, Fila).
+
+inicializar_linea_externa(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
+    actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila),
+    NuevaColumnaActual is ColumnaActual + 1,
+    (NuevaColumnaActual =< CantidadColumnas) -> inicializar_linea_externa(Tablero,Fila,NuevaColumnaActual,CantidadColumnas) ; true.
+
+% Actualiza una celda de una linea externa para que tome el valor que corresponda
+actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
+    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> (inicial_borde_externo(Vertice), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
+
+
+
+
+
+
+
+
+
+
+
 
 
     %% inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
@@ -171,7 +193,7 @@ inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
 inicial_borde_norte(vertice(true,[se,s,sw])).
 inicial_borde_sur(vertice(true,[n,ne,nw])).
-
+inicial_borde_externo(vertice(true, [])).
 
 
 %% posicion_pelota(+E,?P)
@@ -499,7 +521,7 @@ test(posicion_pelota_inicial) :-
     estado_inicial(E),
     posicion_pelota(E,p(0,0)).
 
-% Test para determinar si el tablero inicializado es correcto.
+% Test para determinar si el tablero inicializado es correcto (para tamaño 8x10 o 9 columnas y 13 filas).
 test(tablero_inicial_correcto) :-
     estado_inicial(X),
     X = estado(matriz(

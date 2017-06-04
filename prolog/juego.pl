@@ -68,22 +68,9 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     % lineas de meta
     inicializar_lineas_meta(Tablero,N,M),
 
-    %dentro del arco
-    %% inicializar_arcos(),
-    nuevo_valor_celda_f(1,4,Tablero,vertice(false,[])),
-    nuevo_valor_celda_f(1,5,Tablero,vertice(false,[se,s,sw])),%arco
-    nuevo_valor_celda_f(1,6,Tablero,vertice(false,[sw])),
+    % inicializacion arco y palos
+    inicializar_arcos_palos(Tablero, N),
 
-    nuevo_valor_celda_f(13,4,Tablero,vertice(false,[ne])),
-    nuevo_valor_celda_f(13,5,Tablero,vertice(false,[n,ne,nw])),%arco
-    nuevo_valor_celda_f(13,6,Tablero,vertice(false,[nw])),
-
-
-    %palos
-    nuevo_valor_celda_f(2,4,Tablero,vertice(true,[ne,e,se,s,sw])),
-    nuevo_valor_celda_f(2,6,Tablero,vertice(true,[se,s,sw,w,nw])),
-    nuevo_valor_celda_f(12,4,Tablero,vertice(true,[n,ne,e,se,nw])),
-    nuevo_valor_celda_f(12,6,Tablero,vertice(true,[n,ne,sw,w,nw])),
     %afuera
     nuevo_valor_celda_f(1,1,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(1,2,Tablero,vertice(true,[])),
@@ -98,6 +85,25 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     nuevo_valor_celda_f(13,8,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(13,9,Tablero,vertice(true,[])),
     nuevo_valor_celda_f(7,5,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
+
+
+inicializar_arcos_palos(Tablero, CantidadColumnas) :-
+    % vertices arcos
+    C is div(CantidadColumnas, 2),
+    nuevo_valor_celda_f(1,C,Tablero,vertice(false,[])), %oeste
+    nuevo_valor_celda_f(13,C,Tablero,vertice(false,[ne])), %oeste
+    C1 is C+1,
+    nuevo_valor_celda_f(1,C1,Tablero,vertice(false,[se,s,sw])), %norte
+    nuevo_valor_celda_f(13,C1,Tablero,vertice(false,[n,ne,nw])), %norte
+    C2 is C1+1,
+    nuevo_valor_celda_f(1,C2,Tablero,vertice(false,[sw])), %este
+    nuevo_valor_celda_f(13,C2,Tablero,vertice(false,[nw])), %este
+    %palos
+    nuevo_valor_celda_f(2,C,Tablero,vertice(true,[ne,e,se,s,sw])), %oeste
+    nuevo_valor_celda_f(2,C2,Tablero,vertice(true,[se,s,sw,w,nw])), %este
+    nuevo_valor_celda_f(12,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
+    nuevo_valor_celda_f(12,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
+
 
     %% inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las bandas del tablero, oeste y este
@@ -122,14 +128,6 @@ inicializar_linea_meta(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
 % Actualiza una celda de la linea de meta para que tome el valor que corresponda
 actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
     columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
-
-
-%% inicializar_arcos(Tablero,CantidadColumnas,CantidadFilas) :-
-%%     C is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
-%%     % que no son esquina pero tampoco linea de meta
-%%     inicializar_linea_meta(Tablero,2,3,C),
-%%     UltimaLineaMeta is CantidadFilas - 1,
-%%     inicializar_linea_meta(Tablero,UltimaLineaMeta,3,C).
 
 % columna_fuera_arco(+Columna,+CantidadColumnas) 
 % La columna dada en Columna no es interna a un arco ni coincide con las de sus palos

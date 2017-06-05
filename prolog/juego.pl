@@ -237,7 +237,7 @@ eliminar_direccion(LDirIn,Dir,LDirOut) :-
 % sin llegar a formar un movimiento.
 % (Se usa para validar las jugadas de un jugador humano)
 % La diferencia entre un prefijo y un movimiento, es que en el prefijo
-% todos los pasos se dan sobre casillas ya. (De hecho un movimiento toca
+% todos los pasos se dan sobre casillas ya visitadas. (De hecho un movimiento toca
 % exactamente UNA casilla sin visitar, la última)
 prefijo_movimiento(E,L) :-
     L \= [],
@@ -255,11 +255,22 @@ prefijo_movimiento2(_,[]).
 prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
     mover_pelota(E,_D),
     arg(1,E,Tablero),
-    posicion_pelota(E,p(X,Y)),
+    posicion_pelota(E,p(X,Y)), % verifico que mover_pelota me haya hecho coincidir a la pelota
+    % con la posicion dada por p(X,Y)
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
-    valor_celda_f(F,C,Tablero,vertice(true,_)),
+    valor_celda_f(F,C,Tablero,vertice(true,_)), % chequea que la celda este visitada
+    \+(celda_borde(F,C)), % No es una celda de algún borde (que siempre es visitada)
+    % si no fue visitada, entonces esto devuelve false y da la pauta de que
+    % el movimiento se puede realizar (último elemento de la lista pasada a prefijo_movimiento)
     prefijo_movimiento2(E,Prefijo).
 
+celda_borde(_,1).
+% Columna este.
+celda_borde(_,Columna) :- cantidad_casilleros(X,_), Columna is X + 1.
+% Segunda fila.
+celda_borde(2, Columna) :- cantidad_casilleros(X,_), Y is X + 1, columna_fuera_arco(Columna, Y).
+% Penúltima fila.
+celda_borde(Fila, Columna) :- cantidad_casilleros(_,Fila), cantidad_casilleros(_,X), Y is X + 1, columna_fuera_arco(Columna, Y).
 
 
 %% mover(+E,?LP,?E2)
@@ -267,8 +278,6 @@ prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
 % E2 el estado resultante de hacer un movimiento con la pelota,
 % a través de las posiciones de la lista LP en el estado E
 % y de cambiar el turno.
-
-
 mover(E,L,EOut) :-
     prefijo_movimiento2(E,Prefijo),
     mover_pelota(E,_D),
@@ -278,6 +287,20 @@ mover(E,L,EOut) :-
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
     arg(1,E,Tablero),
     valor_celda_f(F,C,Tablero,vertice(false,Dirs)),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
+    EOut = E.
+
+mover(E,L,EOut) :-
+    prefijo_movimiento2(E,Prefijo),
+    mover_pelota(E,_D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    snoc(Prefijo,p(X,Y),L),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    arg(1,E,Tablero),
+    celda_borde(F,C),
+    valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
     EOut = E.

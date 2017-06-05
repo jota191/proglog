@@ -19,7 +19,7 @@
 % Notar que la cantidad de vértices es uno más que la cantidad de casilleros.
 % Este predicado está dado, no hay que modificarlo.
 
-cantidad_casilleros(8,10).
+cantidad_casilleros(6,8).
 
 %% tablero_offset(HalfWidth,HalfHeight) :-
 %%    cantidad_casilleros(Width, Height),
@@ -64,29 +64,30 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     % Lineas de meta.
     inicializar_lineas_meta(Tablero,N,M),
     % Inicializacion arco y palos.
-    inicializar_arcos_y_palos(Tablero, N),
+    inicializar_arcos_y_palos(Tablero,N,M),
     % Lineas externas.
     inicializar_lineas_externas(Tablero,N,M),
     nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
 % inicializar_arcos_y_palos(+Tablero, +CantidadColumnas)
 % Se inicializan los vértices correspondientes a los arcos y palos del tablero.
-inicializar_arcos_y_palos(Tablero, CantidadColumnas) :-
+inicializar_arcos_y_palos(Tablero, CantidadColumnas, CantidadFilas) :-
     % vertices arcos
     C is div(CantidadColumnas, 2),
     nuevo_valor_celda_f(1,C,Tablero,vertice(false,[])), %oeste
-    nuevo_valor_celda_f(13,C,Tablero,vertice(false,[ne])), %oeste
+    nuevo_valor_celda_f(CantidadFilas,C,Tablero,vertice(false,[ne])), %oeste
     C1 is C+1,
     nuevo_valor_celda_f(1,C1,Tablero,vertice(false,[se,s,sw])), %norte
-    nuevo_valor_celda_f(13,C1,Tablero,vertice(false,[n,ne,nw])), %norte
+    nuevo_valor_celda_f(CantidadFilas,C1,Tablero,vertice(false,[n,ne,nw])), %norte
     C2 is C1+1,
     nuevo_valor_celda_f(1,C2,Tablero,vertice(false,[sw])), %este
-    nuevo_valor_celda_f(13,C2,Tablero,vertice(false,[nw])), %este
+    nuevo_valor_celda_f(CantidadFilas,C2,Tablero,vertice(false,[nw])), %este
     %palos
+    F is CantidadFilas - 1,
     nuevo_valor_celda_f(2,C,Tablero,vertice(true,[ne,e,se,s,sw])), %oeste
     nuevo_valor_celda_f(2,C2,Tablero,vertice(true,[se,s,sw,w,nw])), %este
-    nuevo_valor_celda_f(12,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
-    nuevo_valor_celda_f(12,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
+    nuevo_valor_celda_f(F,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
 
 % inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las lineas externas al tablero.

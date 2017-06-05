@@ -1,5 +1,6 @@
 :- module(inteligencia,[nombre/1,
-                        hacer_jugada/3]).
+                        hacer_jugada/3,
+                       minimax/5]).
 
 :- use_module(juego).
 
@@ -15,21 +16,62 @@ nombre("Grupo 04").
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
-niveles_minimax(1). % TODO
+niveles_minimax(2).
 
 
 %% hacer_jugada(+E,?LP,?E2)
 %
 % E2 es el estado resultante de mover según la lista de posiciones LP
-% de un movimiento que la inteligencia elige jugar para el estado E5.
+% de un movimiento que la inteligencia elige jugar para el estado E.
 % El turno de jugar en el estado E es el de la inteligencia,
 % mientras que en E2 es del otro jugador.
 
-%hacer_jugada(E,LP,E2):-
-%    mover(E,LP,E2). % TODO
+hacer_jugada(E,LP,E2):- niveles_minimax(N),
+                        minimax(E,N,true,LP,_),
+                        mover(E,LP,E2).
 
 % LP es la lista de movimientos hasta ahora
 % E es el estado previo, y E2 el resultante
 
-hacer_jugada(E,[p(0,1)],E2):-
-    mover(E,[p(0,1)],E2). % TODO
+
+
+max([mv(Mov,V)],Mov,V).
+max([mv(Mov,V)|T],BM,Max) :-
+    max(T,Bm2,Max2),
+    (Max2>V -> (BM = Bm2,Max = Max2);(BM=Mov,Max = V)).
+
+min([mv(Mov,V)],Mov,V).
+min([mv(Mov,V)|T],BM,Min) :-
+    min(T,Bm2,Min2),
+    (Min2<V -> (BM = Bm2,Min = Min2);(BM=Mov,Min = V)).
+
+
+minimax(E,Prof,Is_Maximizing,BestMov,Value) :-
+    Prof>0,
+    NewProf is Prof-1,
+    findall(mv(Mov,0),mover(E,Mov,_),MovsPosibles),
+    length(MovsPosibles,Len),print(Len),
+    MovsFunc =.. [movs|MovsPosibles],
+    recursive(E,MovsFunc,Len,NewProf,Is_Maximizing),
+    MovsFunc =.. [_|Movs],
+    (Is_Maximizing = true -> max(Movs,BestMov,Value)
+     ;min(Movs,BestMov,Value)),!.
+
+minimax(E,0,_Is_Maximizing,_,Value) :-
+    posicion_pelota(E,p(_X,Y)),
+    juego:cantidad_casilleros(H,_V),
+    Value is H-Y.
+
+recursive(E,MovsF,Len,Prof,Is_Maximizing) :-
+    between(1,Len,I),
+    arg(I,MovsF,mv(Mov,_)),
+    mover(E,Mov,E2),
+    (Is_Maximizing = true -> NotIM = false; NotIM = false),
+    minimax(E2,Prof,NotIM,_,Value),
+    nb_setarg(I,MovsF,mv(Mov,Value)),
+    fail.
+
+recursive(_,_,_,_,_).
+
+
+

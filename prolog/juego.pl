@@ -284,7 +284,8 @@ prefijo_movimiento(E,L) :-
 % análogo a prefijo_movimiento pero admite listas vacías.
 % podría definirse prefijo_movimiento directamente para que no sea verdadero
 % en listas vacías pero prefijo_movimiento2 sera util en mover.
-% (Tiene de hecho sentido que la lista vacía sea un prefijo, sin embargo si no se
+% (Tiene de hecho sentido que la lista vacía sea un prefijo,
+% sin embargo si no se
 % respeta la especificación la interfaz anda mal)
 
 prefijo_movimiento2(_,[]).

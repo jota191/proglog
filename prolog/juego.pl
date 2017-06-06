@@ -258,11 +258,24 @@ prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
     posicion_pelota(E,p(X,Y)), % verifico que mover_pelota me haya hecho coincidir a la pelota
     % con la posicion dada por p(X,Y)
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
-    valor_celda_f(F,C,Tablero,vertice(true,_)), % chequea que la celda este visitada
     \+(celda_borde(F,C)), % No es una celda de algún borde (que siempre es visitada)
+    valor_celda_f(F,C,Tablero,vertice(true,_)), % chequea que la celda este visitada
     % si no fue visitada, entonces esto devuelve false y da la pauta de que
     % el movimiento se puede realizar (último elemento de la lista pasada a prefijo_movimiento)
     prefijo_movimiento2(E,Prefijo).
+
+prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
+    mover_pelota(E,_D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    celda_borde(F,C),
+    valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    largo(Dirs,N), N > 0, % mientras un vertice de borde sea visitable
+    prefijo_movimiento2(E,Prefijo).
+
+% celda_borde(+Fila,+Columna)
+% La celda dada por (Fila,Columna) es de borde (o sea una esquina, linea de meta, o banda este/oeste)
 
 celda_borde(_,1).
 % Columna este.

@@ -19,7 +19,7 @@
 % Notar que la cantidad de vértices es uno más que la cantidad de casilleros.
 % Este predicado está dado, no hay que modificarlo.
 
-cantidad_casilleros(8,10).
+cantidad_casilleros(6,8).
 
 %% tablero_offset(HalfWidth,HalfHeight) :-
 %%    cantidad_casilleros(Width, Height),
@@ -64,75 +64,56 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     % Lineas de meta.
     inicializar_lineas_meta(Tablero,N,M),
     % Inicializacion arco y palos.
-    inicializar_arcos_palos(Tablero, N),
+    inicializar_arcos_y_palos(Tablero,N,M),
     % Lineas externas.
     inicializar_lineas_externas(Tablero,N,M),
     nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
-
-inicializar_arcos_palos(Tablero, CantidadColumnas) :-
+% inicializar_arcos_y_palos(+Tablero, +CantidadColumnas)
+% Se inicializan los vértices correspondientes a los arcos y palos del tablero.
+inicializar_arcos_y_palos(Tablero, CantidadColumnas, CantidadFilas) :-
     % vertices arcos
     C is div(CantidadColumnas, 2),
     nuevo_valor_celda_f(1,C,Tablero,vertice(false,[])), %oeste
-    nuevo_valor_celda_f(13,C,Tablero,vertice(false,[ne])), %oeste
+    nuevo_valor_celda_f(CantidadFilas,C,Tablero,vertice(false,[ne])), %oeste
     C1 is C+1,
     nuevo_valor_celda_f(1,C1,Tablero,vertice(false,[se,s,sw])), %norte
-    nuevo_valor_celda_f(13,C1,Tablero,vertice(false,[n,ne,nw])), %norte
+    nuevo_valor_celda_f(CantidadFilas,C1,Tablero,vertice(false,[n,ne,nw])), %norte
     C2 is C1+1,
     nuevo_valor_celda_f(1,C2,Tablero,vertice(false,[sw])), %este
-    nuevo_valor_celda_f(13,C2,Tablero,vertice(false,[nw])), %este
+    nuevo_valor_celda_f(CantidadFilas,C2,Tablero,vertice(false,[nw])), %este
     %palos
+    F is CantidadFilas - 1,
     nuevo_valor_celda_f(2,C,Tablero,vertice(true,[ne,e,se,s,sw])), %oeste
     nuevo_valor_celda_f(2,C2,Tablero,vertice(true,[se,s,sw,w,nw])), %este
-    nuevo_valor_celda_f(12,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
-    nuevo_valor_celda_f(12,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
+    nuevo_valor_celda_f(F,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
 
-
-
-
-
-
-
-
-
-
-%% inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
-% Setea el estado de las lineas externas al tablero
+% inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
+% Setea el estado de las lineas externas al tablero.
 inicializar_lineas_externas(Tablero,CantidadColumnas,CantidadFilas) :-
     %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
     % que no son esquina pero tampoco linea de meta
     inicializar_linea_externa(Tablero,1,1,CantidadColumnas),
     inicializar_linea_externa(Tablero,CantidadFilas,1,CantidadColumnas).
 
+% inicializar_linea_externa(+Tablero,+Fila,+ColumnaActual,+CantidadColumnas)
+% Inicializa la línea externa de Tablero dada por Fila y ColumnaActual, tomando como limite para iterar al valor CantidadColumnas.
 inicializar_linea_externa(Tablero,Fila,CantidadColumnas,CantidadColumnas) :- actualizar_celda_linea_externa(Tablero, CantidadColumnas, CantidadColumnas, Fila).
-
 inicializar_linea_externa(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
     actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila),
     NuevaColumnaActual is ColumnaActual + 1,
     (NuevaColumnaActual =< CantidadColumnas) -> inicializar_linea_externa(Tablero,Fila,NuevaColumnaActual,CantidadColumnas) ; true.
 
-% Actualiza una celda de una linea externa para que tome el valor que corresponda
+% actualizar_celda_linea_externa(+Tablero, +ColumnaActual, +CantidadColumnas, +Fila)
+% Actualiza una celda de una linea externa de Tablero, dada por Fila y ColumnaActual, para que tome el valor que corresponda.
+% Usa CantidadColumnas para verificar que la columna no corresponda a alguna de un arco.
 actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
     columna_fuera_arco(ColumnaActual,CantidadColumnas) -> (inicial_borde_externo(Vertice), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
 
-
-
-
-
-
-
-
-
-
-
-
-
-    %% inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
-% Setea el estado de las bandas del tablero, oeste y este
-
+% inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
+% Setea el estado de las bandas de Tablero, oeste y este.
 inicializar_lineas_meta(Tablero,CantidadColumnas,CantidadFilas) :-
-    %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
-    % que no son esquina pero tampoco linea de meta
     inicializar_linea_meta(Tablero,2,2,CantidadColumnas),
     UltimaLineaMeta is CantidadFilas - 1,
     inicializar_linea_meta(Tablero,UltimaLineaMeta,2,CantidadColumnas).
@@ -140,78 +121,76 @@ inicializar_lineas_meta(Tablero,CantidadColumnas,CantidadFilas) :-
 % inicializar_linea_meta(+Tablero,+Fila,+ColumnaActual,+CantidadColumnas)
 % Recorre la fila indicada por Fila inicializando los vertices
 % de acuerdo a inicial_borde_norte,
-% a excepcion de los palos del arco o vertices internos al arco
+% a excepcion de los palos del arco o vertices internos al arco.
 inicializar_linea_meta(_,_,CantidadColumnas,CantidadColumnas).
 inicializar_linea_meta(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
     actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila),
     NuevaColumnaActual is ColumnaActual + 1,
     inicializar_linea_meta(Tablero,Fila,NuevaColumnaActual,CantidadColumnas).
 
-% Actualiza una celda de la linea de meta para que tome el valor que corresponda
+% actualizar_celda_linea_meta(+Tablero, +ColumnaActual, +CantidadColumnas, +Fila)
+% Actualiza una celda de la linea de meta en Tablero, dada por Fila y ColumnaActual, para que tome el valor que corresponda. 
+% Usa CantidadColumnas para verificar que la columna no corresponda a alguna de un arco.
 actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
     columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
 
 % columna_fuera_arco(+Columna,+CantidadColumnas) 
-% La columna dada en Columna no es interna a un arco ni coincide con las de sus palos
+% La columna dada en Columna no es interna a un arco ni coincide con las de sus palos.
+% Se usa CantidadColumnas para verificar que la columna sea interna al tablero.
 columna_fuera_arco(Columna,CantidadColumnas) :-
     ColumnaPaloIzq is div(CantidadColumnas,2),
     Columna > 0,
     Columna < ColumnaPaloIzq, !.
-
 columna_fuera_arco(Columna,CantidadColumnas) :-
     ColumnaPaloDer is div(CantidadColumnas,2) + 2,
     Columna =< CantidadColumnas,
     Columna > ColumnaPaloDer.
 
 
-    %% inicializar_bandas(+Tablero,+CantidadColumnas,+CantidadFilas)
-% Setea el estado de las bandas del tablero, oeste y este
-
+% inicializar_bandas(+Tablero,+CantidadColumnas,+CantidadFilas)
+% Setea el estado de las bandas de Tablero, oeste y este.
+% Se utilizan CantidadColumnas y CantidadFilas para limitar la inicialización.
 inicializar_bandas(Tablero,CantidadColumnas,CantidadFilas) :-
     % Se ajustan las filas para que no se tome la linea de meta
     MaximaFila is CantidadFilas - 1,
     inicializar_bandas(Tablero,3,MaximaFila,CantidadColumnas).
     % se arranca por la fila 3 (debajo del arco)
 
-inicializar_bandas(_Tablero,MaximaFila,MaximaFila,_). %paro
-inicializar_bandas(Tablero,F,MaximaFila,MaximaColumna) :-
+% inicializar_bandas(+Tablero,+FilaActual,+MaximaFila,+MaximaColumna)
+% Setea el estado de las bandas de Tablero, oeste y este en la fila FilaActual.
+% Se utilizan MaximaFila y MaximaColumna para limitar la inicialización.
+inicializar_bandas(_,MaximaFila,MaximaFila,_). % Condición de parada.
+inicializar_bandas(Tablero,FilaActual,MaximaFila,MaximaColumna) :-
     inicial_oeste(Oeste),
     inicial_este(Este),
-    nuevo_valor_celda_f(F,1,Tablero,Oeste),
-    nuevo_valor_celda_f(F,MaximaColumna,Tablero,Este),
-    NewF is F+1,
-    inicializar_bandas(Tablero,NewF,MaximaFila,MaximaColumna).
+    nuevo_valor_celda_f(FilaActual,1,Tablero,Oeste),
+    nuevo_valor_celda_f(FilaActual,MaximaColumna,Tablero,Este),
+    NuevaFilaActual is FilaActual+1,
+    inicializar_bandas(Tablero,NuevaFilaActual,MaximaFila,MaximaColumna).
 
-
-%% inicial_medio(?Vertice)
-% predicado que define los vértices iniciales del medio del tablero
+% inicial_medio(?Vertice)
+% Predicado que define los vértices iniciales del medio del tablero.
 inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 
-%% inicial_{oeste|este}(?Vertice)
-% predicado que define los vértices iniciales del {oeste|este} del tablero
+% inicial_{oeste|este|borde_norte|borde_sur|borde_externo}(?Vertice)
+% Predicado que define los vértices iniciales del {oeste|este|borde_norte|borde_sur|borde_externo} del tablero.
 inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
 inicial_borde_norte(vertice(true,[se,s,sw])).
 inicial_borde_sur(vertice(true,[n,ne,nw])).
 inicial_borde_externo(vertice(true, [])).
 
-
-%% posicion_pelota(+E,?P)
-%
+% posicion_pelota(+E,?P)
 % P es la posición de la pelota para el estado E.
-
 posicion_pelota(estado(_,pelota(M,N),_),p(X,Y)) :-
     traducir_coordenadas(interna(M,N),interfaz(X,Y)).
 
-
-%% traducir_coordenadas (?Interna,?Interfaz)
-%
-% traduce de coordenadas internas ((1,1) es el vértice
+% traducir_coordenadas (?Interna,?Interfaz)
+% Traduce de coordenadas internas ((1,1) es el vértice
 % de arriba a la izquierda)
 % a coordenadas usadas por la interfaz web ((0,0) es
-% el vértice central del tablero)
-% funciona con cualquiera de los dos instanciado
-
+% el vértice central del tablero).
+% Funciona con cualquiera de los dos instanciado.
 traducir_coordenadas(Interna,Interfaz) :-
     cantidad_casilleros(Ancho,Alto),
     OffsetColumna is div(Ancho,2) + 1,
@@ -223,13 +202,9 @@ traducir_coordenadas(interna(F,C),interfaz(X,Y),OffsetFila,OffsetColumna) :-
                   X is C-OffsetColumna);
     (F is OffsetFila-Y, C is X+OffsetColumna).
 
-
-
-%% gol(+E,?NJugador)
-%
+% gol(+E,?NJugador)
 % La pelota está en situación de gol a favor del jugador NJugador
 % para el estado E.
-
 gol(estado(_Tablero,pelota(F,C),_),1):-
     cantidad_casilleros(NCols,_NFilas),
     Central is div(NCols,2) + 1,%pelota en columna central
@@ -242,62 +217,74 @@ gol(estado(_Tablero,pelota(F,C),_),2):-
     F is NFilas+3,
     abs(Central-C) =< 1,!.
 
-
-%% turno(+E,?NJugador)
-%
+% turno(+E,?NJugador)
 % NJugador es el jugador que tiene que mover en el siguiente turno
 % para el estado E.
-
 turno(estado(_,_,turno(J)),J).
 
 
-%% eliminar_direccion(+LDirIn,+Dir,?LDirOut)
-%
-% elimina la direccion D de la lista de direcciones LDirIn
+% eliminar_direccion(+LDirIn,+Dir,?LDirOut)
+% Elimina la direccion D de la lista de direcciones LDirIn
 % se implementa trivialmente con sin_elem del lab1, prefiero usar este wrapper
 % por si despues optimizamos el conjunto de direcciones como algo que no sea
-% una lista o así
-
+% una lista o así.
 eliminar_direccion(LDirIn,Dir,LDirOut) :-
     sin_elem(LDirIn,Dir,LDirOut),!.
 
-
-
-%% prefijo_movimiento(+E,+LP)
-%
+% prefijo_movimiento(+E,+LP)
 % LP es una lista no vacía de posiciones que constituyen
 % el prefijo de un movimiento para el estado E,
 % sin llegar a formar un movimiento.
 % (Se usa para validar las jugadas de un jugador humano)
-
 % La diferencia entre un prefijo y un movimiento, es que en el prefijo
-% todos los pasos se dan sobre casillas ya. (De hecho un movimiento toca
+% todos los pasos se dan sobre casillas ya visitadas. (De hecho un movimiento toca
 % exactamente UNA casilla sin visitar, la última)
-
 prefijo_movimiento(E,L) :-
     L \= [],
     prefijo_movimiento2(E,L).
 
 
-%% prefijo_movimiento2(+E,+LP)
-%
-% análogo a prefijo_movimiento pero admite listas vacías.
-% podría definirse prefijo_movimiento directamente para que no sea verdadero
+% prefijo_movimiento2(+E,+LP)
+% Análogo a prefijo_movimiento pero admite listas vacías.
+% Podría definirse prefijo_movimiento directamente para que no sea verdadero
 % en listas vacías pero prefijo_movimiento2 sera util en mover.
 % (Tiene de hecho sentido que la lista vacía sea un prefijo,
 % sin embargo si no se
 % respeta la especificación la interfaz anda mal)
-
 prefijo_movimiento2(_,[]).
+
+prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
+    mover_pelota(E,_D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)), % verifico que mover_pelota me haya hecho coincidir a la pelota
+    % con la posicion dada por p(X,Y)
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    \+(celda_borde(F,C)), % No es una celda de algún borde (que siempre es visitada)
+    valor_celda_f(F,C,Tablero,vertice(true,_)), % chequea que la celda este visitada
+    % si no fue visitada, entonces esto devuelve false y da la pauta de que
+    % el movimiento se puede realizar (último elemento de la lista pasada a prefijo_movimiento)
+    prefijo_movimiento2(E,Prefijo).
 
 prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
     mover_pelota(E,_D),
     arg(1,E,Tablero),
     posicion_pelota(E,p(X,Y)),
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
-    valor_celda_f(F,C,Tablero,vertice(true,_)),
+    celda_borde(F,C),
+    valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    largo(Dirs,N), N > 0, % mientras un vertice de borde sea visitable
     prefijo_movimiento2(E,Prefijo).
 
+% celda_borde(+Fila,+Columna)
+% La celda dada por (Fila,Columna) es de borde (o sea una esquina, linea de meta, o banda este/oeste)
+
+celda_borde(_,1).
+% Columna este.
+celda_borde(_,Columna) :- cantidad_casilleros(X,_), Columna is X + 1.
+% Segunda fila.
+celda_borde(2, Columna) :- cantidad_casilleros(X,_), Y is X + 1, columna_fuera_arco(Columna, Y).
+% Penúltima fila.
+celda_borde(Fila, Columna) :- cantidad_casilleros(_,Fila), cantidad_casilleros(_,X), Y is X + 1, columna_fuera_arco(Columna, Y).
 
 
 %% mover(+E,?LP,?E2)
@@ -305,8 +292,6 @@ prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
 % E2 el estado resultante de hacer un movimiento con la pelota,
 % a través de las posiciones de la lista LP en el estado E
 % y de cambiar el turno.
-
-
 mover(E,L,EOut) :-
     prefijo_movimiento2(E,Prefijo),
     mover_pelota(E,_D),
@@ -320,6 +305,20 @@ mover(E,L,EOut) :-
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
     EOut = E.
 
+mover(E,L,EOut) :-
+    prefijo_movimiento2(E,Prefijo),
+    mover_pelota(E,_D),
+    arg(1,E,Tablero),
+    posicion_pelota(E,p(X,Y)),
+    snoc(Prefijo,p(X,Y),L),
+    traducir_coordenadas(interna(F,C),interfaz(X,Y)),
+    arg(1,E,Tablero),
+    celda_borde(F,C),
+    valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
+    (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
+    EOut = E.
+
 
 % snoc/2(+L,?X,?L2)
 snoc([],X,[X]).
@@ -327,12 +326,9 @@ snoc([H|T],X,[H|L2]) :- snoc(T,X,L2).
 
 
 
-%% mover_pelota(+E,Dir)
+% mover_pelota(+E,Dir)
 % --predicado impuro (efecto sobre E)
 % realiza un movimiento de la pelota en el estado E, en la direccion Dir,
-
-
-
 mover_pelota(E,n) :-
     E =.. [estado,Tablero,pelota(F,C),turno(_J)],
     valor_celda_f(F,C,Tablero,vertice(Vis,Dirs)),

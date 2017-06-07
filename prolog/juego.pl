@@ -67,14 +67,15 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     inicializar_arcos_y_palos(Tablero,N,M),
     % Lineas externas.
     inicializar_lineas_externas(Tablero,N,M),
-    nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
+    nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,
+                        vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
 
 % inicializar_arcos_y_palos(+Tablero, +CantidadColumnas)
 % Se inicializan los vértices correspondientes a los arcos y palos del tablero.
 inicializar_arcos_y_palos(Tablero, CantidadColumnas, CantidadFilas) :-
     % vertices arcos
     C is div(CantidadColumnas, 2),
-    nuevo_valor_celda_f(1,C,Tablero,vertice(false,[])), %oeste
+    nuevo_valor_celda_f(1,C,Tablero,vertice(false,[se])), %oeste
     nuevo_valor_celda_f(CantidadFilas,C,Tablero,vertice(false,[ne])), %oeste
     C1 is C+1,
     nuevo_valor_celda_f(1,C1,Tablero,vertice(false,[se,s,sw])), %norte
@@ -92,24 +93,40 @@ inicializar_arcos_y_palos(Tablero, CantidadColumnas, CantidadFilas) :-
 % inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las lineas externas al tablero.
 inicializar_lineas_externas(Tablero,CantidadColumnas,CantidadFilas) :-
-    %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para no incluir ultima columna (no linea de meta)
+    %% UltimaColumna is CantidadColumnas - 1, % ajusto columnas para
+    % no incluir ultima columna (no linea de meta)
     % que no son esquina pero tampoco linea de meta
     inicializar_linea_externa(Tablero,1,1,CantidadColumnas),
     inicializar_linea_externa(Tablero,CantidadFilas,1,CantidadColumnas).
 
 % inicializar_linea_externa(+Tablero,+Fila,+ColumnaActual,+CantidadColumnas)
-% Inicializa la línea externa de Tablero dada por Fila y ColumnaActual, tomando como limite para iterar al valor CantidadColumnas.
-inicializar_linea_externa(Tablero,Fila,CantidadColumnas,CantidadColumnas) :- actualizar_celda_linea_externa(Tablero, CantidadColumnas, CantidadColumnas, Fila).
+% Inicializa la línea externa de Tablero dada por Fila y ColumnaActual,
+% tomando como limite para iterar al valor CantidadColumnas.
+inicializar_linea_externa(Tablero,Fila,CantidadColumnas,CantidadColumnas) :-
+    actualizar_celda_linea_externa(Tablero, CantidadColumnas,
+                                   CantidadColumnas, Fila).
 inicializar_linea_externa(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
-    actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila),
+    actualizar_celda_linea_externa(Tablero, ColumnaActual,
+                                   CantidadColumnas, Fila),
     NuevaColumnaActual is ColumnaActual + 1,
-    (NuevaColumnaActual =< CantidadColumnas) -> inicializar_linea_externa(Tablero,Fila,NuevaColumnaActual,CantidadColumnas) ; true.
+    (NuevaColumnaActual =< CantidadColumnas) ->
+        inicializar_linea_externa(Tablero,
+                                  Fila,
+                                  NuevaColumnaActual,
+                                  CantidadColumnas)
+        ; true.
 
-% actualizar_celda_linea_externa(+Tablero, +ColumnaActual, +CantidadColumnas, +Fila)
-% Actualiza una celda de una linea externa de Tablero, dada por Fila y ColumnaActual, para que tome el valor que corresponda.
-% Usa CantidadColumnas para verificar que la columna no corresponda a alguna de un arco.
-actualizar_celda_linea_externa(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
-    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> (inicial_borde_externo(Vertice), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
+% actualizar_celda_linea_externa(+Tablero, +ColumnaActual,
+%                                +CantidadColumnas, +Fila)
+% Actualiza una celda de una linea externa de Tablero,
+% dada por Fila y ColumnaActual, para que tome el valor que corresponda.
+% Usa CantidadColumnas para verificar que la columna no corresponda
+% a alguna de un arco.
+actualizar_celda_linea_externa(Tablero, ColumnaActual,CantidadColumnas,Fila) :-
+    columna_fuera_arco(ColumnaActual,CantidadColumnas) ->
+        (inicial_borde_externo(Vertice),
+         nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice))
+        ; true.
 
 % inicializar_lineas_meta(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las bandas de Tablero, oeste y este.
@@ -132,7 +149,11 @@ inicializar_linea_meta(Tablero,Fila,ColumnaActual,CantidadColumnas) :-
 % Actualiza una celda de la linea de meta en Tablero, dada por Fila y ColumnaActual, para que tome el valor que corresponda. 
 % Usa CantidadColumnas para verificar que la columna no corresponda a alguna de un arco.
 actualizar_celda_linea_meta(Tablero, ColumnaActual, CantidadColumnas, Fila) :-
-    columna_fuera_arco(ColumnaActual,CantidadColumnas) -> ((Fila =:= 2 -> inicial_borde_norte(Vertice) ; inicial_borde_sur(Vertice)), nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice)) ; true.
+    columna_fuera_arco(ColumnaActual,CantidadColumnas) ->
+    ((Fila =:= 2 -> inicial_borde_norte(Vertice)
+         ; inicial_borde_sur(Vertice)),
+           nuevo_valor_celda_f(Fila,ColumnaActual,Tablero,Vertice))
+    ; true.
 
 % columna_fuera_arco(+Columna,+CantidadColumnas) 
 % La columna dada en Columna no es interna a un arco ni coincide con las de sus palos.
@@ -173,7 +194,8 @@ inicializar_bandas(Tablero,FilaActual,MaximaFila,MaximaColumna) :-
 inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
 
 % inicial_{oeste|este|borde_norte|borde_sur|borde_externo}(?Vertice)
-% Predicado que define los vértices iniciales del {oeste|este|borde_norte|borde_sur|borde_externo} del tablero.
+% Predicado que define los vértices iniciales del
+% {oeste|este|borde_norte|borde_sur|borde_externo} del tablero.
 inicial_oeste(vertice(true,[ne,e,se])).
 inicial_este(vertice(true,[sw,w,nw])).
 inicial_borde_norte(vertice(true,[se,s,sw])).

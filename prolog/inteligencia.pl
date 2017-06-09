@@ -26,7 +26,7 @@ niveles_minimax(2).
 % mientras que en E2 es del otro jugador.
 
 hacer_jugada(E,LP,E2):- niveles_minimax(N),
-                        turno(E,J)
+                        turno(E,J),
                         minimax(E,N,true,LP,_,J),
                         mover(E,LP,E2).
 
@@ -84,7 +84,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador) :-
     % (podria usarse la estructura de diccionario de swipl, prefiero dejarlo
     % estandar por ahora (capaz si terminamos antes reimplementamos y
     % testeamos qué es más rápido))
-    findall(mv(Mov,0),mover(E,Mov,_),MovsPosibles),
+    findall(mv(Mov,-500),mover(E,Mov,_),MovsPosibles),
 
     % en lugar de una lista, usamos una representacion functorial
     % para acceder en o(1) a cada indice (la otra opcion es pasar acumulador en
@@ -105,7 +105,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador) :-
      ;min(Movs,BestMov,Value)),!.
 
 
-minimax(E,0,_Is_Maximizing,_,Value,_Jugador) :-
+minimax(E,0,_Is_Maximizing,_,Value,Jugador) :-
     %     ↑
     % caso profundidad 0 (llegué al ultimo nivel),
     % se evalua la funcion de las hojas
@@ -114,10 +114,16 @@ minimax(E,0,_Is_Maximizing,_,Value,_Jugador) :-
     % (se puede usar variable global tambien sino)
     % se fija en hacer_jugada y se pasa siempre el mismo, aca en las hojas
     % segun el valor se decide si se quiere hacer gol arriba o abajo...
-
-    posicion_pelota(E,p(_X,Y)),
-    juego:cantidad_casilleros(H,_V),
-    Value is H-Y.
+    (Jugador = 2 -> % patea para abajo
+         posicion_pelota(E,p(_X,Y)),
+         juego:cantidad_casilleros(H,_V),
+         Value is H-Y;
+    %patea para arriba
+     Jugador = 2 ->
+         posicion_pelota(E,p(_X,Y)),
+         juego:cantidad_casilleros(H,_V),
+         Value is Y-H
+    ).
 
 % esta funcion evalua la distancia solo vertical, capaz hay que ponderar la
 % horizontal tambien (para calcular distancia en pasos o cosas asi),

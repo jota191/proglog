@@ -26,7 +26,8 @@ niveles_minimax(2).
 % mientras que en E2 es del otro jugador.
 
 hacer_jugada(E,LP,E2):- niveles_minimax(N),
-                        minimax(E,N,true,LP,_,0),
+                        turno(E,J)
+                        minimax(E,N,true,LP,_,J),
                         mover(E,LP,E2).
 
 % LP es la lista de movimientos hasta ahora

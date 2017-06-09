@@ -18,7 +18,7 @@ const COLOR_GRILLA = "#bdbdbd";
 const COLOR_JUGADOR_1 = "#2196F3";
 const COLOR_JUGADOR_2 = "#f44336";
 
-const TIMEOUT = 40000;
+const TIMEOUT = 400000;
 
 function inicializarTamano(nuevoAncho, nuevoAlto) {
   ancho = nuevoAncho;

@@ -56,11 +56,14 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     inicializar_bandas(Tablero,N,M),
     % se inicializan celdas de extremos este y oeste
     %esquinas
-    nuevo_valor_celda_f(2,1,Tablero,vertice(true,[se])),
-    nuevo_valor_celda_f(2,N,Tablero,vertice(true,[sw])),
+
+    nuevo_valor_celda_f(2,1,Tablero,vertice(true,dirs(f,f,f,se,f,f,f,f))),
+    nuevo_valor_celda_f(2,N,Tablero,vertice(true,dirs(f,f,f,f,f,sw,f,f))),
     FilaEsquinaInferior is M - 1,
-    nuevo_valor_celda_f(FilaEsquinaInferior,1,Tablero,vertice(true,[ne])),
-    nuevo_valor_celda_f(FilaEsquinaInferior,N,Tablero,vertice(true,[nw])),
+    nuevo_valor_celda_f(FilaEsquinaInferior,1,Tablero,
+                        vertice(true,dirs(f,ne,f,f,f,f,f,f))),
+    nuevo_valor_celda_f(FilaEsquinaInferior,N,Tablero,
+                        vertice(true,dirs(f,f,f,f,f,f,f,nw))),
     % Lineas de meta.
     inicializar_lineas_meta(Tablero,N,M),
     % Inicializacion arco y palos.
@@ -68,27 +71,37 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     % Lineas externas.
     inicializar_lineas_externas(Tablero,N,M),
     nuevo_valor_celda_f(PelotaX,PelotaY,Tablero,
-                        vertice(true,[n,ne,e,se,s,sw,w,nw])),!.
+                        vertice(true,dirs(n,ne,e,se,s,sw,w,nw))),!.
 
 % inicializar_arcos_y_palos(+Tablero, +CantidadColumnas)
 % Se inicializan los vértices correspondientes a los arcos y palos del tablero.
 inicializar_arcos_y_palos(Tablero, CantidadColumnas, CantidadFilas) :-
     % vertices arcos
     C is div(CantidadColumnas, 2),
-    nuevo_valor_celda_f(1,C,Tablero,vertice(false,[se])), %oeste
-    nuevo_valor_celda_f(CantidadFilas,C,Tablero,vertice(false,[ne])), %oeste
+    nuevo_valor_celda_f(1,C,Tablero,
+                        vertice(false,dirs(f,f,f,se,f,f,f,f))),%oeste
+    nuevo_valor_celda_f(CantidadFilas,C,Tablero,
+                        vertice(false,dirs(f,ne,f,f,f,f,f,f))), %oeste
     C1 is C+1,
-    nuevo_valor_celda_f(1,C1,Tablero,vertice(false,[se,s,sw])), %norte
-    nuevo_valor_celda_f(CantidadFilas,C1,Tablero,vertice(false,[n,ne,nw])), %norte
+    nuevo_valor_celda_f(1,C1,Tablero,
+                        vertice(false,dirs(f,f,f,se,s,sw,f,f))), %norte
+    nuevo_valor_celda_f(CantidadFilas,C1,Tablero,
+                        vertice(false,dirs(n,ne,f,f,f,f,f,nw))), %norte
     C2 is C1+1,
-    nuevo_valor_celda_f(1,C2,Tablero,vertice(false,[sw])), %este
-    nuevo_valor_celda_f(CantidadFilas,C2,Tablero,vertice(false,[nw])), %este
+    nuevo_valor_celda_f(1,C2,Tablero,
+                        vertice(false,dirs(f,f,f,f,f,sw,f,f))), %este
+    nuevo_valor_celda_f(CantidadFilas,C2,Tablero,
+                        vertice(false,dirs(f,f,f,f,f,f,f,nw))), %este
     %palos
     F is CantidadFilas - 1,
-    nuevo_valor_celda_f(2,C,Tablero,vertice(true,[ne,e,se,s,sw])), %oeste
-    nuevo_valor_celda_f(2,C2,Tablero,vertice(true,[se,s,sw,w,nw])), %este
-    nuevo_valor_celda_f(F,C,Tablero,vertice(true,[n,ne,e,se,nw])),%oeste
-    nuevo_valor_celda_f(F,C2,Tablero,vertice(true,[n,ne,sw,w,nw])). %este
+    nuevo_valor_celda_f(2,C,Tablero,
+                        vertice(true,dirs(f,ne,e,se,s,sw,f,f))), %oeste
+    nuevo_valor_celda_f(2,C2,Tablero,
+                        vertice(true,dirs(f,f,f,se,s,sw,w,nw))), %este
+    nuevo_valor_celda_f(F,C,Tablero,
+                        vertice(true,dirs(n,ne,e,se,f,f,f,nw))),%oeste
+    nuevo_valor_celda_f(F,C2,Tablero,
+                        vertice(true,dirs(n,ne,f,f,f,sw,w,nw))). %este
 
 % inicializar_lineas_externas(+Tablero,+CantidadColumnas,+CantidadFilas)
 % Setea el estado de las lineas externas al tablero.
@@ -191,16 +204,16 @@ inicializar_bandas(Tablero,FilaActual,MaximaFila,MaximaColumna) :-
 
 % inicial_medio(?Vertice)
 % Predicado que define los vértices iniciales del medio del tablero.
-inicial_medio(vertice(false,[n,ne,e,se,s,sw,w,nw])).
+inicial_medio(vertice(false,dirs(n,ne,e,se,s,sw,w,nw))).
 
 % inicial_{oeste|este|borde_norte|borde_sur|borde_externo}(?Vertice)
 % Predicado que define los vértices iniciales del
 % {oeste|este|borde_norte|borde_sur|borde_externo} del tablero.
-inicial_oeste(vertice(true,[ne,e,se])).
-inicial_este(vertice(true,[sw,w,nw])).
-inicial_borde_norte(vertice(true,[se,s,sw])).
-inicial_borde_sur(vertice(true,[n,ne,nw])).
-inicial_borde_externo(vertice(true, [])).
+inicial_oeste(vertice(true,dirs(f,ne,e,se,f,f,f,f))).
+inicial_este(vertice(true,dirs(f,f,f,f,f,sw,w,nw))).
+inicial_borde_norte(vertice(true,dirs(f,f,f,se,s,sw,f,f))).
+inicial_borde_sur(vertice(true,dirs(n,ne,f,f,f,f,f,nw))).
+inicial_borde_externo(vertice(true, dirs(f,f,f,f,f,f,f,f))).
 
 % posicion_pelota(+E,?P)
 % P es la posición de la pelota para el estado E.
@@ -244,14 +257,54 @@ gol(estado(_Tablero,pelota(F,C),_),2):-
 % para el estado E.
 turno(estado(_,_,turno(J)),J).
 
-
+%
 % eliminar_direccion(+LDirIn,+Dir,?LDirOut)
 % Elimina la direccion D de la lista de direcciones LDirIn
 % se implementa trivialmente con sin_elem del lab1, prefiero usar este wrapper
 % por si despues optimizamos el conjunto de direcciones como algo que no sea
 % una lista o así.
-eliminar_direccion(LDirIn,Dir,LDirOut) :-
-    sin_elem(LDirIn,Dir,LDirOut),!.
+% s̶e̶ i̶m̶p̶l̶e̶m̶e̶n̶t̶a̶ t̶r̶i̶v̶i̶a̶l̶m̶e̶n̶t̶e̶ c̶o̶n̶ s̶i̶n̶_̶e̶l̶e̶m̶ d̶e̶l̶ l̶a̶b̶1̶,̶ p̶r̶e̶f̶i̶e̶r̶o̶ u̶s̶a̶r̶
+% e̶s̶t̶e̶ w̶r̶a̶p̶p̶e̶r̶ p̶o̶r̶ s̶i̶ d̶e̶s̶p̶u̶e̶s̶ o̶p̶t̶i̶m̶i̶z̶a̶m̶o̶s̶ e̶l̶
+% c̶o̶n̶j̶u̶n̶t̶o̶ d̶e̶ d̶i̶r̶e̶c̶c̶i̶o̶n̶e̶s̶ c̶o̶m̶o̶ a̶l̶g̶o̶ q̶u̶e̶ n̶o̶ s̶e̶a̶ u̶n̶a̶ l̶i̶s̶t̶a̶ o̶ a̶s̶í̶.̶
+
+% eliminar_direccion(LDirIn,Dir,LDirOut) :-
+%    sin_elem(LDirIn,Dir,LDirOut),!.
+
+% optimizacion, representacion con functores
+% el codigo queda mas largo, hay que hacer case analysis pero esto deberia ser
+% mas eficiente que manipular las listas (igual no es una mejora radical)
+% el parametro de salida ya no es necesario ya que el predicado computa
+% un efecto sobre la entrada, se mantiene la interfaz de todas formas
+% (analogo a lo que pasa con mover/3 que podria ser mover/2)
+
+eliminar_direccion(DirsIn,n,DirsIn)  :-
+    arg(1,DirsIn,n),
+    setarg(1,DirsIn,f).
+eliminar_direccion(DirsIn,ne,DirsIn) :-
+    arg(2,DirsIn,ne),
+    setarg(2,DirsIn,f).
+eliminar_direccion(DirsIn,e,DirsIn)  :-
+    arg(3,DirsIn,e),
+    setarg(3,DirsIn,f).
+eliminar_direccion(DirsIn,se,DirsIn) :-
+    arg(4,DirsIn,se),
+    setarg(4,DirsIn,f).
+eliminar_direccion(DirsIn,s,DirsIn)  :-
+    arg(5,DirsIn,s),
+    setarg(5,DirsIn,f).
+eliminar_direccion(DirsIn,sw,DirsIn) :-
+    arg(6,DirsIn,sw),
+    setarg(6,DirsIn,f).
+eliminar_direccion(DirsIn,w,DirsIn)  :-
+    arg(7,DirsIn,w),
+    setarg(7,DirsIn,f).
+eliminar_direccion(DirsIn,nw,DirsIn) :-
+    arg(8,DirsIn,nw),
+    setarg(8,DirsIn,f).
+
+
+
+
 
 % prefijo_movimiento(+E,+LP)
 % LP es una lista no vacía de posiciones que constituyen
@@ -278,7 +331,8 @@ prefijo_movimiento2(_,[]).
 prefijo_movimiento2(E,[p(X,Y)|Prefijo]) :-
     mover_pelota(E,_D),
     arg(1,E,Tablero),
-    posicion_pelota(E,p(X,Y)), % verifico que mover_pelota me haya hecho coincidir a la pelota
+    posicion_pelota(E,p(X,Y)),
+    % verifico que mover_pelota me haya hecho coincidir a la pelota
     % con la posicion dada por p(X,Y)
     traducir_coordenadas(interna(F,C),interfaz(X,Y)),
     \+(celda_borde(F,C)), % No es una celda de algún borde (que siempre es visitada)

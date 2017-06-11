@@ -26,7 +26,8 @@ niveles_minimax(2).
 % mientras que en E2 es del otro jugador.
 
 hacer_jugada(E,LP,E2):- niveles_minimax(N),
-                        minimax(E,N,true,LP,_,0),
+                        turno(E,J),
+                        minimax(E,N,true,LP,_,J,-1,1000),
                         mover(E,LP,E2).
 
 % LP es la lista de movimientos hasta ahora
@@ -72,7 +73,7 @@ min([mv(Mov,V)|T],BM,Min) :-
 % (todavia no se usa porque esta hardcodeado hacia abajo)
 
 
-minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador) :-
+minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
 
     % caso profundidad no nula (recrsivo)
     Prof > 0,
@@ -93,7 +94,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador) :-
     length(MovsPosibles,Len),
 
     % llamada recursiva, se llama minimax para cada entrada de MovsFunc
-    recursive(E,MovsFunc,Len,NewProf,Is_Maximizing,Jugador),
+    recursive(E,MovsFunc,Len,NewProf,Is_Maximizing,Jugador,Alpha,Beta),
 
     % despues se elige el maximo o el minimo de la lista, dependiendo del nodo
     % TODO: va a ser mas eficiente implementar directamente max y min
@@ -104,7 +105,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador) :-
      ;min(Movs,BestMov,Value)),!.
 
 
-minimax(E,0,_Is_Maximizing,_,Value,_Jugador) :-
+minimax(E,0,_Is_Maximizing,_,Value,Jugador,Alpha,Beta) :-
     %     ↑
     % caso profundidad 0 (llegué al ultimo nivel),
     % se evalua la funcion de las hojas
@@ -114,14 +115,22 @@ minimax(E,0,_Is_Maximizing,_,Value,_Jugador) :-
     % se fija en hacer_jugada y se pasa siempre el mismo, aca en las hojas
     % segun el valor se decide si se quiere hacer gol arriba o abajo...
 
-    posicion_pelota(E,p(_X,Y)),
-    juego:cantidad_casilleros(H,_V),
-    Value is H-Y.
+    distancia_arco(E,Jugador,Value).
 
 % esta funcion evalua la distancia solo vertical, capaz hay que ponderar la
 % horizontal tambien (para calcular distancia en pasos o cosas asi),
 % o ver como se puede mejorar
 
+
+distancia_arco(E,Jugador,Value) :-
+    juego:cantidad_casilleros(_Ancho,Alto),
+    posicion_pelota(E,p(_X,Y)),
+    MitadAlto is Alto // 2 + 1,
+    (Jugador = 1 -> % patea para abajo
+         Value is MitadAlto + Y;
+    %patea para arriba
+    %(Jugador = 2 -> % patea para abajo
+         Value is MitadAlto - Y).
 
 % recursive (+E : Estado,
 %            +MovsF : Functor con parametros mv(Mov,Int),
@@ -132,7 +141,7 @@ minimax(E,0,_Is_Maximizing,_,Value,_Jugador) :-
 % se hace la llamada recursiva del minimax, para cada movimiento posible, se
 % hace el movimiento y se llama a minimax en ese escenario
 
-recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador) :-
+recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     % loop-fail, para cada movimiento
     between(1,Len,I),
     arg(I,MovsF,mv(Mov,_)),
@@ -145,14 +154,14 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador) :-
     % Prof reducido en 1 respecto a la llamada anterior (se hace en minimax,
     % antes de llamar a recursive para hacer la resta una vez sola)
 
-    minimax(E2,Prof,NotIM,_,Value,Jugador),
+    minimax(E2,Prof,NotIM,_,Value,Jugador,Alpha,Beta),
 
     % el valor que retorna el minimax se setea en la entrada correspondiente
     % del diccionario (habia un 0 como placeholder)
     nb_setarg(I,MovsF,mv(Mov,Value)),
     fail.
 
-recursive(_,_,_,_,_,_).%end del loop
+recursive(_,_,_,_,_,_,_,_).%end del loop
 
 
 

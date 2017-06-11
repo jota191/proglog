@@ -338,7 +338,7 @@ mover(E,L,EOut) :-
     celda_borde(F,C),
     valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
-    (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
+    % Acá no se debe cambiar el turno ya que se está en un vértice ya visitado.
     EOut = E.
 
 
@@ -544,7 +544,7 @@ test(posicion_pelota_inicial) :-
 test(tablero_inicial_correcto) :-
     estado_inicial(X),
     X = estado(matriz(
-    row(vertice(true, []), vertice(true, []), vertice(true, []), vertice(false, []), vertice(false, [se, s, sw]), vertice(false, [sw]), vertice(true, []), vertice(true, []), vertice(true, [])), 
+    row(vertice(true, []), vertice(true, []), vertice(true, []), vertice(false, [se]), vertice(false, [se, s, sw]), vertice(false, [sw]), vertice(true, []), vertice(true, []), vertice(true, [])), 
     row(vertice(true, [se]), vertice(true, [se, s, sw]), vertice(true, [se, s, sw]), vertice(true, [ne, e, se, s, sw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [se, s, sw, w, nw]), vertice(true, [se, s, sw]), vertice(true, [se, s, sw]), vertice(true, [sw])), 
     row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 
     row(vertice(true, [ne, e, se]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(false, [n, ne, e, se, s, sw, w, nw]), vertice(true, [sw, w, nw])), 

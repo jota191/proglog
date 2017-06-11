@@ -19,7 +19,7 @@
 % Notar que la cantidad de vértices es uno más que la cantidad de casilleros.
 % Este predicado está dado, no hay que modificarlo.
 
-cantidad_casilleros(6,8).
+cantidad_casilleros(8,10).
 
 %% tablero_offset(HalfWidth,HalfHeight) :-
 %%    cantidad_casilleros(Width, Height),

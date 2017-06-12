@@ -15,7 +15,7 @@ nombre("Grupo 04").
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
-niveles_minimax(2).
+niveles_minimax(1).
 
 
 %% hacer_jugada(+E,?LP,?E2)
@@ -163,17 +163,17 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     % hago el movimiento
     mover(E,Mov,E2),
     (Is_Maximizing = true ->
-         %duplicate_term(Alpha,AlphaC),
-         %duplicate_term(Beta,BetaC),
-         minimax(E2,Prof,false,_,Value,Jugador,Alpha,Beta),
+         duplicate_term(Alpha,AlphaC),
+         duplicate_term(Beta,BetaC),
+         minimax(E2,Prof,false,_,Value,Jugador,AlphaC,BetaC),
          NewA  = max(A,Value),
          nb_setarg(1,Alpha,NewA),
          (B =< A -> Poda = /**/true; Poda = false)
 
       %Not Is_Maximizing
-     ;   %duplicate_term(Alpha,AlphaC),
-         %duplicate_term(Beta,BetaC),
-         minimax(E2,Prof,true,_,Value,Jugador,Alpha,Beta),
+     ;   duplicate_term(Alpha,AlphaC),
+         duplicate_term(Beta,BetaC),
+         minimax(E2,Prof,true,_,Value,Jugador,AlphaC,BetaC),
          NewB  = min(B,Value),
          nb_setarg(1,Beta,NewB),
          (B =< A -> Poda = /**/true; Poda = false)
@@ -189,7 +189,7 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     nb_setarg(I,MovsF,mv(Mov,Value)),
     arg(I,MovsF,mv(Mov,Value)),
     %writeln(Mov),
-    (Poda = true -> !;fail).
+    (Poda = true -> true,!;fail).
 
 recursive(_,_,_,_,_,_,_,_).%end del loop
 

@@ -49,7 +49,7 @@ estado_inicial(estado(Tablero,pelota(PelotaX,PelotaY),turno(1))) :-
     inicial_medio(Medio),
     %% FilasMatriz is M + 1,
     %% ColumnasMatriz is N + 1,
-    matriz_f(M,N,Medio,Tablero),
+    generar_f(Medio,M,N,Tablero),
     % se inicializa a cada vertice como si
     % tuviera todos los movimientos disponibles, y despues
     % se cambian aquellos que esten mas limitados
@@ -379,7 +379,8 @@ mover(E,L,EOut) :-
     valor_celda_f(F,C,Tablero,vertice(false,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
-    EOut = E.
+    duplicate_term(E,EOut).
+    %EOut = E.
 
 mover(E,L,EOut) :-
     prefijo_movimiento2(E,Prefijo),
@@ -393,7 +394,8 @@ mover(E,L,EOut) :-
     valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     % Acá no se debe cambiar el turno ya que se está en un vértice ya visitado.
-    EOut = E.
+    duplicate_term(E,EOut).
+    %EOut = E.
 
 
 % snoc/2(+L,?X,?L2)

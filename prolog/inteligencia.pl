@@ -95,7 +95,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     % (podria usarse la estructura de diccionario de swipl, prefiero dejarlo
     % estandar por ahora (capaz si terminamos antes reimplementamos y
     % testeamos qué es más rápido))
-    findall(mv(Mov,-500),mover(E,Mov,_),MovsPosibles),
+    findall(mv(Mov,0),mover(E,Mov,_),MovsPosibles),
 
     % en lugar de una lista, usamos una representacion functorial
     % para acceder en o(1) a cada indice (la otra opcion es pasar acumulador en
@@ -157,24 +157,23 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     % loop-fail, para cada movimiento
     between(1,Len,I),
     arg(I,MovsF,mv(Mov,_)),
-
     Alpha = alpha(A),
     Beta  = beta(B),
 
     % hago el movimiento
     mover(E,Mov,E2),
     (Is_Maximizing = true ->
-         duplicate_term(Alpha,AlphaC),
-         duplicate_term(Beta,BetaC),
-         minimax(E2,Prof,false,_,Value,Jugador,AlphaC,BetaC),
+         %duplicate_term(Alpha,AlphaC),
+         %duplicate_term(Beta,BetaC),
+         minimax(E2,Prof,false,_,Value,Jugador,Alpha,Beta),
          NewA  = max(A,Value),
          nb_setarg(1,Alpha,NewA),
          (B =< A -> Poda = /**/true; Poda = false)
 
       %Not Is_Maximizing
-     ;   duplicate_term(Alpha,AlphaC),
-         duplicate_term(Beta,BetaC),
-         minimax(E2,Prof,true,_,Value,Jugador,AlphaC,BetaC),
+     ;   %duplicate_term(Alpha,AlphaC),
+         %duplicate_term(Beta,BetaC),
+         minimax(E2,Prof,true,_,Value,Jugador,Alpha,Beta),
          NewB  = min(B,Value),
          nb_setarg(1,Beta,NewB),
          (B =< A -> Poda = /**/true; Poda = false)
@@ -190,7 +189,7 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     nb_setarg(I,MovsF,mv(Mov,Value)),
     arg(I,MovsF,mv(Mov,Value)),
     %writeln(Mov),
-    (Poda = true -> true;fail).
+    (Poda = true -> !;fail).
 
 recursive(_,_,_,_,_,_,_,_).%end del loop
 
@@ -200,7 +199,7 @@ recursive(_,_,_,_,_,_,_,_).%end del loop
 prueba(X) :-
     between(1,X,I),
     writeln(I),
-    (I=10 -> true,!; fail).
+    (I=10 -> !; fail).
 
 prueba(_).
 

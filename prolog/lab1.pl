@@ -26,7 +26,8 @@
     matriz_f/4,
     valor_celda_f/4,
     nuevo_valor_celda_f/4,
-    adyacente_f/6
+    adyacente_f/6,
+    generar_f/4
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -467,8 +468,6 @@ matriz_f_(M,N,E,A) :-
 % se modifican valores indeseados.
 
 
-
-
 %% row_f/3(+M, +E, ?V) (Auxiliar)
 %
 %   V es un vector de tamanio M conteniendo el valor E en todas sus entradas
@@ -479,8 +478,6 @@ matriz_f_(M,N,E,A) :-
 row_f(N,E,V) :-
     vector(N,E,VList),%creamos el vector como una lista
     V =.. [row|VList].
-
-
 
 %% valor_celda_f/4(+I, +J, +A, ?E)
 %
@@ -566,34 +563,34 @@ generar(M,N,A) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%generar_f/6(+M, +N, +K, +L, A, B)
+%%generar_f/7(+M, +N, +K, +L, A, B)
 %
 %   Analogo generar/6 con la implementacion eficiente
 
-generar_f(M,N,K,L,A,B) :-
+generar_f(Valor,M,N,K,L,A,B) :-
     L < N,
     LNew is L+1,
-    V is K+L,
+    duplicate_term(Valor,V),
     nuevo_valor_celda_f(K,L,A,V),
-    generar_f(M,N,K,LNew,A,B).
-generar_f(M,N,K,N,A,B) :-
+    generar_f(Valor,M,N,K,LNew,A,B).
+generar_f(Valor,M,N,K,N,A,B) :-
     K < M,
     KNew is K+1,
-    V is K+N,
+    duplicate_term(Valor,V),
     nuevo_valor_celda_f(K,N,A,V),
-    generar_f(M,N,KNew,1,A,B).
-generar_f(M,N,M,N,A,A) :-
-    V is M+N,
+    generar_f(Valor,M,N,KNew,1,A,B).
+generar_f(Valor,M,N,M,N,A,A) :-
+    duplicate_term(Valor,V),
     nuevo_valor_celda_f(M,N,A,V).
 
 
-%%generar_f/3(+M ,+N,-A)
+%%generar_f/4(Value,+M ,+N,-A)
 %
 %   Analogo a generar/3, con la implementacion eficiente
 
-generar_f(M,N,A) :-
+generar_f(Valor,M,N,A) :-
     matriz_f(M,N,0,Init),
-    generar_f(M,N,1,1,Init,A).
+    generar_f(Valor,M,N,1,1,Init,A).
 
 
 

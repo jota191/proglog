@@ -32,7 +32,7 @@ hacer_jugada(E,LP,E2):- niveles_minimax(N),
                         % asumimos que no van a haber tableros de largo 1000,
                         % asi que es un valor valido para el beta inicial
                         minimax(E,N,true,LP,_,J,alpha(-1),beta(1000)),
-                        mover(E,LP,E2).
+                        mover(E,LP,E2),!.
 
 % LP es la lista de movimientos hasta ahora
 % E es el estado previo, y E2 el resultante
@@ -130,9 +130,9 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     % despues al primero
     %MovsFunc =.. [_|Movs],
     (Is_Maximizing = true ->
-         max(MovsFunc,mv(BestMov,Value),Len)
+         max(MovsFunc,mv(BestMov,Value),Len),!
      ;   min(MovsFunc,mv(BestMov,Value),Len),!)
-    ; distancia_arco(E,Jugador,Value)).
+    ; distancia_arco(E,Jugador,Value),!),!.
 
 minimax(E,0,_Is_Maximizing,_,Value,Jugador,_Alpha,_Beta) :-
     %     ↑

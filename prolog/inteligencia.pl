@@ -47,30 +47,36 @@ hacer_jugada(E,LP,E2):- niveles_minimax(N),
 % de todos los hijos de un nodo de minimax).
 % de la entrada mv(Mov,V) con Mayor V, se retornan Mov y V
 
-max([mv(Mov,V)],Mov,V).
-max([mv(Mov,V)|T],BM,Max) :-
-    max(T,Bm2,Max2),
-    (Max2>V -> (BM = Bm2,Max = Max2);(BM=Mov,Max = V)).
 
 
-% analogo a Max, retorna el menor V de la lista con su correspondiente Mov
+max(MovsF,MV/*mv(Mov,V)*/,Len) :-
+    nb_setarg(1,MV,[]),
+    nb_setarg(2,MV,0),
+    between(1,Len,I),
+    arg(2,MV,V),
+    arg(I,MovsF,mv(MovI,VI)),
+    (V < VI -> nb_setarg(1,MV,MovI),
+               nb_setarg(2,MV,VI)),
+    fail.
+
+max(_MovsF,_MV,_Len).
+
+
+min(MovsF,MV/*mv(Mov,V)*/,Len) :-
+    nb_setarg(1,MV,[]),
+    nb_setarg(2,MV,1000),
+    between(1,Len,I),
+    arg(2,MV,V),
+    arg(I,MovsF,mv(MovI,VI)),
+    (V > VI -> (VI \= 0 -> nb_setarg(1,MV,MovI),
+                           nb_setarg(2,MV,VI))),
+    fail.
+
+min(_MovsF,_MV,_Len).
+
+
+% min es analogo a Max, retorna el menor V de la lista con su correspondiente Mov
 % (los ceros se ignoran, no cuentan como min, son los valores podados )
-min([mv(Mov,V)],Mov,V):- !.
-
-min([mv(_Mov,0)|T],BM,Min) :-
-    min(T,BM,Min),!.
-
-min([mv(Mov,V)|T],BM,Min) :-
-    V > 0,
-    min(T,Bm2,Min2),
-    Min2 \= 0,
-    ((Min2<V)-> (BM = Bm2,Min = Min2);(BM=Mov,Min = V)),!.
-
-min([mv(Mov,V)|T],BM,Min) :-
-    V>0,
-    min(T,_Bm2,Min_2),
-    Min_2 = 0,
-    BM=Mov,Min = V,!.
 
 % en ambos casos, se ignoran los valores ceros en la lista, ya que corresponden
 % a valores podados (la lista se inicializa con ceros y luego los valores se
@@ -122,9 +128,10 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     % TODO: va a ser mas eficiente implementar directamente max y min
     % sobre la coleccion representada como functores y no pasar de uno a otro y
     % despues al primero
-    MovsFunc =.. [_|Movs],
-    (Is_Maximizing = true -> max(Movs,BestMov,Value)
-     ;min(Movs,BestMov,Value),!).
+    %MovsFunc =.. [_|Movs],
+    (Is_Maximizing = true ->
+         max(MovsFunc,mv(BestMov,Value),Len)
+     ;   min(MovsFunc,mv(BestMov,Value),Len),!).
 
 
 minimax(E,0,_Is_Maximizing,_,Value,Jugador,_Alpha,_Beta) :-

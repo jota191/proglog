@@ -15,7 +15,7 @@ nombre("Grupo 04").
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
-niveles_minimax(2).
+niveles_minimax(1).
 
 
 %% hacer_jugada(+E,?LP,?E2)
@@ -59,7 +59,7 @@ max(MovsF,MV/*mv(Mov,V)*/,Len) :-
                nb_setarg(2,MV,VI)),
     fail.
 
-max(_MovsF,_MV,_Len).
+max(_MovsF,_MV,_Len) :- !.
 
 
 min(MovsF,MV/*mv(Mov,V)*/,Len) :-
@@ -72,7 +72,7 @@ min(MovsF,MV/*mv(Mov,V)*/,Len) :-
                            nb_setarg(2,MV,VI))),
     fail.
 
-min(_MovsF,_MV,_Len).
+min(_MovsF,_MV,_Len) :-!.
 
 
 % min es analogo a Max, retorna el menor V de la lista con su correspondiente Mov
@@ -120,7 +120,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     MovsFunc =.. [movs|MovsPosibles],
 
     length(MovsPosibles,Len),
-
+    (Len > 0 ->
     % llamada recursiva, se llama minimax para cada entrada de MovsFunc
     recursive(E,MovsFunc,Len,NewProf,Is_Maximizing,Jugador,Alpha,Beta),
 
@@ -131,8 +131,8 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     %MovsFunc =.. [_|Movs],
     (Is_Maximizing = true ->
          max(MovsFunc,mv(BestMov,Value),Len)
-     ;   min(MovsFunc,mv(BestMov,Value),Len),!).
-
+     ;   min(MovsFunc,mv(BestMov,Value),Len),!)
+    ; distancia_arco(E,Jugador,Value)).
 
 minimax(E,0,_Is_Maximizing,_,Value,Jugador,_Alpha,_Beta) :-
     %     ↑

@@ -15,7 +15,7 @@ nombre("Grupo 04").
 %
 % MaxNiveles es la cantidad máxima de niveles de Minimax de la inteligencia.
 
-niveles_minimax(1).
+niveles_minimax(2).
 
 
 %% hacer_jugada(+E,?LP,?E2)
@@ -27,6 +27,10 @@ niveles_minimax(1).
 
 hacer_jugada(E,LP,E2):- niveles_minimax(N),
                         turno(E,J),
+                        %como la heuristica de las hojas da siempre positiva,
+                        % -1 es analogo a -inf (y 0 se usa para marcar prune)
+                        % asumimos que no van a haber tableros de largo 1000,
+                        % asi que es un valor valido para el beta inicial
                         minimax(E,N,true,LP,_,J,alpha(-1),beta(1000)),
                         mover(E,LP,E2).
 
@@ -50,6 +54,7 @@ max([mv(Mov,V)|T],BM,Max) :-
 
 
 % analogo a Max, retorna el menor V de la lista con su correspondiente Mov
+% (los ceros se ignoran, no cuentan como min, son los valores podados )
 min([mv(Mov,V)],Mov,V):- !.
 
 min([mv(_Mov,0)|T],BM,Min) :-
@@ -66,6 +71,11 @@ min([mv(Mov,V)|T],BM,Min) :-
     min(T,_Bm2,Min_2),
     Min_2 = 0,
     BM=Mov,Min = V,!.
+
+% en ambos casos, se ignoran los valores ceros en la lista, ya que corresponden
+% a valores podados (la lista se inicializa con ceros y luego los valores se
+% actualizan con el resultado del minimax que siempre es positivo, los ceros
+% aparecen si se podó y no se llegó a tocar la lista)
 
 
 
@@ -96,6 +106,7 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     % estandar por ahora (capaz si terminamos antes reimplementamos y
     % testeamos qué es más rápido))
     findall(mv(Mov,0),mover(E,Mov,_),MovsPosibles),
+    %se usa 0 como valor inicial
 
     % en lugar de una lista, usamos una representacion functorial
     % para acceder en o(1) a cada indice (la otra opcion es pasar acumulador en
@@ -105,8 +116,6 @@ minimax(E,Prof,Is_Maximizing,BestMov,Value,Jugador,Alpha,Beta) :-
     length(MovsPosibles,Len),
 
     % llamada recursiva, se llama minimax para cada entrada de MovsFunc
-%    duplicate_term(Alpha,AlphaC),
- %   duplicate_term(Beta,BetaC),
     recursive(E,MovsFunc,Len,NewProf,Is_Maximizing,Jugador,Alpha,Beta),
 
     % despues se elige el maximo o el minimo de la lista, dependiendo del nodo
@@ -122,27 +131,20 @@ minimax(E,0,_Is_Maximizing,_,Value,Jugador,_Alpha,_Beta) :-
     %     ↑
     % caso profundidad 0 (llegué al ultimo nivel),
     % se evalua la funcion de las hojas
-    % TODO: usar el parametro Jugador, ahora esta pateando pa' abajo siempre,
-    % mi idea es que el parametro venga fijo, como contexto,
-    % (se puede usar variable global tambien sino)
-    % se fija en hacer_jugada y se pasa siempre el mismo, aca en las hojas
-    % segun el valor se decide si se quiere hacer gol arriba o abajo...
     distancia_arco(E,Jugador,Value).
 
-% esta funcion evalua la distancia solo vertical, capaz hay que ponderar la
-% horizontal tambien (para calcular distancia en pasos o cosas asi),
-% o ver como se puede mejorar
 
-
+% distancia_arco(+E,+Jugador,-Value)
 distancia_arco(E,Jugador,Value) :-
     juego:cantidad_casilleros(_Ancho,Alto),
     posicion_pelota(E,p(_X,Y)),
     MitadAlto is Alto // 2 + 1,
-    (Jugador = 1 -> % patea para abajo
+    (Jugador = 1 -> % patea para arriba
          Value is MitadAlto + Y;
     %patea para arriba
     %(Jugador = 2 -> % patea para abajo
          Value is MitadAlto - Y).
+
 
 % recursive (+E : Estado,
 %            +MovsF : Functor con parametros mv(Mov,Int),
@@ -161,6 +163,9 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
     Beta  = beta(B),
 
     % hago el movimiento
+    % las llamadas a minimax son con ¬Is_Maximizing,
+    % Prof reducido en 1 respecto a la llamada anterior (se hace en minimax,
+    % antes de llamar a recursive para hacer la resta una vez sola)
     mover(E,Mov,E2),
     (Is_Maximizing = true ->
          duplicate_term(Alpha,AlphaC),
@@ -168,7 +173,7 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
          minimax(E2,Prof,false,_,Value,Jugador,AlphaC,BetaC),
          NewA  = max(A,Value),
          nb_setarg(1,Alpha,NewA),
-         (B =< A -> Poda = /**/true; Poda = false)
+         (B =< A -> Poda = true; Poda = false)
 
       %Not Is_Maximizing
      ;   duplicate_term(Alpha,AlphaC),
@@ -176,19 +181,18 @@ recursive(E,MovsF,Len,Prof,Is_Maximizing,Jugador,Alpha,Beta) :-
          minimax(E2,Prof,true,_,Value,Jugador,AlphaC,BetaC),
          NewB  = min(B,Value),
          nb_setarg(1,Beta,NewB),
-         (B =< A -> Poda = /**/true; Poda = false)
+         (B =< A -> Poda = true; Poda = false)
     ),
 
-    % llamo a minimax con ¬Is_Maximizing,
-    % Prof reducido en 1 respecto a la llamada anterior (se hace en minimax,
-    % antes de llamar a recursive para hacer la resta una vez sola)
 
 
     % el valor que retorna el minimax se setea en la entrada correspondiente
     % del diccionario (habia un 0 como placeholder)
     nb_setarg(I,MovsF,mv(Mov,Value)),
     arg(I,MovsF,mv(Mov,Value)),
-    %writeln(Mov),
+
+    % si habia que podar, se corta el loop fail retornando true, y se hace cut
+    % para evitar el backtracking
     (Poda = true -> true,!;fail).
 
 recursive(_,_,_,_,_,_,_,_).%end del loop

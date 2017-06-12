@@ -379,8 +379,8 @@ mover(E,L,EOut) :-
     valor_celda_f(F,C,Tablero,vertice(false,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     (turno(E,1) -> setarg(3,E,turno(2));setarg(3,E,turno(1))),
-    duplicate_term(E,EOut).
-    %EOut = E.
+    %duplicate_term(E,EOut).
+    EOut = E.
 
 mover(E,L,EOut) :-
     prefijo_movimiento2(E,Prefijo),
@@ -393,9 +393,8 @@ mover(E,L,EOut) :-
     celda_borde(F,C),
     valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
     nuevo_valor_celda_f(F,C,Tablero,vertice(true,Dirs)),
-    % Acá no se debe cambiar el turno ya que se está en un vértice ya visitado.
-    duplicate_term(E,EOut).
-    %EOut = E.
+    %duplicate_term(E,EOut).
+    EOut = E.
 
 
 % snoc/2(+L,?X,?L2)
@@ -524,29 +523,29 @@ print_Estado(_).
 %vertices afuera, que solo existen en las filas de los arcos
 print_cell(vertice(_,[])) :- write(' '),!.
 %vertices internos
-print_cell(vertice(_,[n,ne,e,se,s,sw,w,nw])) :-
+print_cell(vertice(_,dirs(n,ne,e,se,s,sw,w,nw))) :-
     write('┼'),!. %unicode 253C
 %vertices bandas
-print_cell(vertice(_,[ne,e,se])) :-
+print_cell(vertice(_,dirs(f,ne,e,se,f,f,f,f))) :-
     write('┠'),!.
-print_cell(vertice(_,[sw,w,nw])) :-
+print_cell(vertice(_,dirs(f,f,f,f,f,sw,w,nw))) :-
     write('┨'),!.
 %vertices fondo
-print_cell(vertice(_,[se,s,sw])) :-
+print_cell(vertice(_,dirs(f,f,f,se,s,sw,f,f))) :-
     write('┯'),!.
-print_cell(vertice(_,[n,ne,nw])) :-
+print_cell(vertice(_,dirs(n,ne,f,f,f,f,f,nw))) :-
     write('┷'),!.
 %vertices esquinas
-print_cell(vertice(_,[se])) :-
+print_cell(vertice(_,dirs(f,f,f,se,f,f,f,f))) :-
     write('┏'),!.
-print_cell(vertice(_,[sw])) :-
+print_cell(vertice(_,dirs(f,f,f,f,f,sw,f,f))) :-
     write('┓'),!.
-print_cell(vertice(_,[ne])) :-
+print_cell(vertice(_,dirs(f,ne,f,f,f,f,f,f))) :-
     write('┗'),!.
-print_cell(vertice(_,[nw])) :-
+print_cell(vertice(_,dirs(f,f,f,f,f,f,f,nw))) :-
     write('┛'),!.
 %vertices palos
-print_cell(vertice(_,[n,ne,e,se,nw])) :-
+print_cell(vertice(_,dirs(n,ne,e,se,f,f,f,nw))) :-
     write('╅'),!.
 print_cell(vertice(_,[n,ne,sw,w,nw])) :-
     write('╆'),!.
